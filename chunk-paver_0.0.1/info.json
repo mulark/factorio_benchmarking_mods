@@ -1,0 +1,11 @@
+{
+  "name": "chunk-paver",
+  "version": "0.0.1",
+  "title": "Chunk Paver",
+  "author": "mulark",
+  "contact": "",
+  "homepage": "mulark.github.io/my_mods.html#chunk-paver",
+  "description": "Converts all newly generated land tiles into refined concrete. Lakes and oceans are preserved.",
+  "factorio_version": "0.16",
+  "dependencies": []
+}
