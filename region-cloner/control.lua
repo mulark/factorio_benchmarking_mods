@@ -30,24 +30,10 @@ script.on_event({defines.events.on_gui_click}, function(event)
         player.cursor_stack.set_stack("region-cloner_selection-tool")
     end
     if (clicked_on == "restrict_selection_area_to_entities") then
-        local current_view = frame_flow["region-cloner_control-window"]["region-cloner_coordinate-table"]
-        local old_left = tonumber(current_view["left_top_x"].text)
-        local old_top = tonumber(current_view["left_top_y"].text)
-        local old_right = tonumber(current_view["right_bottom_x"].text)
-        local old_bottom = tonumber(current_view["right_bottom_y"].text)
-        if (old_left and old_top and old_bottom and old_right) then
-            local new_left, new_top, new_right, new_bottom = restrict_selection_area_to_entities(old_left, old_top, old_right, old_bottom, player)
-            current_view["left_top_x"].text = new_left
-            current_view["left_top_y"].text = new_top
-            current_view["right_bottom_x"].text = new_right
-            current_view["right_bottom_y"].text = new_bottom
-        else
-            player.print("A coordinate is not a number!")
-        end
+        validate_coordinates_and_update_view(player, true)
     end
     if (clicked_on == "issue_copy_pastes") then
         if (validate_player_copy_paste_settings(player)) then
-            player.print("Successfully validated copy settings!")
             issue_copy_paste(player)
         end
     end

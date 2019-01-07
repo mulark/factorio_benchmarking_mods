@@ -1,0 +1,5 @@
+0.0.1:
+Initial release
+
+0.0.2:
+Make cloning the rail grid based on if any rail is detected, not forced at all times; fix bug for copying to the north and west.

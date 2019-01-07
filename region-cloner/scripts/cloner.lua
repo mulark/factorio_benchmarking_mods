@@ -1,6 +1,10 @@
 function correct_for_rail_grid(tile_paste_length)
     if ((tile_paste_length % 2) ~= 0) then
-        tile_paste_length = tile_paste_length + 1
+        if (tile_paste_length < 0) then
+            tile_paste_length = tile_paste_length - 1
+        else
+            tile_paste_length = tile_paste_length + 1
+        end
     end
     return tile_paste_length
 end
@@ -117,6 +121,7 @@ function copy_progress_bars(original_entity, cloned_entity)
 end
 
 function copy_resources (original_entity, cloned_entity)
+    local surface = original_entity.surface
     if (original_entity.type == "mining-drill") then
         if (original_entity.mining_target) then
             local resource = original_entity.mining_target
@@ -137,6 +142,7 @@ function copy_resources (original_entity, cloned_entity)
 end
 
 function copy_circuit_connections (original_entity, cloned_entity)
+    local surface = original_entity.surface
     if (original_entity.circuit_connection_definitions) then
         for x=1, #original_entity.circuit_connection_definitions do
             local targetent = original_entity.circuit_connection_definitions[x].target_entity
@@ -200,9 +206,11 @@ function copy_transport_line_contents (original_entity, cloned_entity)
     end
 end
 
-function clean_entity_pool (entity_pool)
+function clean_entity_pool (entity_pool, tiles_to_paste_x, tiles_to_paste_y)
+    local flag_rail_found = false
     for key, ent in pairs(entity_pool) do
-        if not (ent.valid) then
+        if has_value(ent.type, {"straight-rail", "curved-rail"}) then
+            flag_rail_found = true
         end
         if has_value(ent.type, {"player", "entity-ghost", "tile-ghost"}) then
             entity_pool[key] = nil
@@ -214,6 +222,15 @@ function clean_entity_pool (entity_pool)
             end
         end
     end
+    if (flag_rail_found) then
+        if (tiles_to_paste_x ~= 0) then
+            tiles_to_paste_x = correct_for_rail_grid(tiles_to_paste_x)
+        end
+        if (tiles_to_paste_y ~= 0) then
+            tiles_to_paste_y = correct_for_rail_grid(tiles_to_paste_y)
+        end
+    end
+    return tiles_to_paste_x, tiles_to_paste_y
 end
 
 local function ensure_entity_pool_valid(pool)
@@ -269,14 +286,8 @@ function clone_region_pre(source_left, source_top, source_right, source_bottom, 
         --[[Pasting to the north]]
         start_tile_y = source_bottom
     end
-    if (tiles_to_paste_x ~= 0) then
-        tiles_to_paste_x = correct_for_rail_grid(tiles_to_paste_x)
-    end
-    if (tiles_to_paste_y ~= 0) then
-        tiles_to_paste_y = correct_for_rail_grid(tiles_to_paste_y)
-    end
-    local entity_pool = player.surface.find_entities_filtered({area={{source_left, source_top}, {source_right, source_bottom}}, force="player"})
-    clean_entity_pool(entity_pool)
+    local entity_pool = surface.find_entities_filtered({area={{source_left, source_top}, {source_right, source_bottom}}, force="player"})
+    tiles_to_paste_x, tiles_to_paste_y = clean_entity_pool(entity_pool, tiles_to_paste_x, tiles_to_paste_y)
     script.on_event(defines.events.on_tick, function(event)
         on_tick_behavior(source_left, source_top, source_right, source_bottom, times_to_paste, tiles_to_paste_x, tiles_to_paste_y, entity_pool, low_priority_entities, start_tile_x, start_tile_y, start_tick, player, surface)
     end)

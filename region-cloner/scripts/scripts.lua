@@ -11,17 +11,50 @@ local function has_value (val, tab)
     return false
 end
 
+function decode_direction_for_unusual_collision_box(direction, type)
+    local offset_left, offset_top, offset_right, offset_bottom = 4, 4, 4, 4
+    if type == "curved-rail" then
+        if has_value(direction, {0, 5}) then
+            offset_right = 2
+        end
+        if has_value(direction, {1, 4}) then
+            offset_left = 2
+        end
+        if has_value(direction, {2, 7}) then
+            offset_bottom = 2
+        end
+        if has_value(direction, {3, 6}) then
+            offset_top = 2
+        end
+    end
+    return offset_left, offset_top, offset_right, offset_bottom
+end
+
 function restrict_selection_area_to_entities(left, top, right, bottom, player)
     local first_ent = true
+    local problematic_collision_box_entity_types = {"curved-rail"}
     local new_left, new_right, new_top, new_bottom = 0
     left, right = swap_to_fix_pairs(left, right)
     top, bottom = swap_to_fix_pairs(top, bottom)
     for _, ent in pairs(player.surface.find_entities_filtered{area={{left, top},{right,bottom}}, force="player"}) do
         if not has_value(ent.type, entities_not_allowed_type) then
-            local compare_left = math.floor(ent.position.x + ent.prototype.collision_box.left_top.x)
-            local compare_top = math.floor(ent.position.y + ent.prototype.collision_box.left_top.y)
-            local compare_right = math.ceil(ent.position.x + ent.prototype.collision_box.right_bottom.x)
-            local compare_bottom = math.ceil(ent.position.y + ent.prototype.collision_box.right_bottom.y)
+            local unusual_collision_box_factor_left, unusual_collision_box_factor_top, unusual_collision_box_factor_right, unusual_collision_box_factor_bottom = 0, 0, 0, 0
+            local prototype_box = ent.prototype.collision_box
+            local prototype_factor_lefttop_x = prototype_box.left_top.x
+            local prototype_factor_lefttop_y = prototype_box.left_top.y
+            local prototype_factor_rightbottom_x = prototype_box.right_bottom.x
+            local prototype_factor_rightbottom_y = prototype_box.right_bottom.y
+            if has_value(ent.type, problematic_collision_box_entity_types) then
+                unusual_collision_box_factor_left, unusual_collision_box_factor_top, unusual_collision_box_factor_right, unusual_collision_box_factor_bottom = decode_direction_for_unusual_collision_box(ent.direction, ent.type)
+                prototype_factor_lefttop_x = 0
+                prototype_factor_lefttop_y = 0
+                prototype_factor_rightbottom_x = 0
+                prototype_factor_rightbottom_y = 0
+            end
+            local compare_left = math.floor(ent.position.x + prototype_factor_lefttop_x - unusual_collision_box_factor_left)
+            local compare_top = math.floor(ent.position.y + prototype_factor_lefttop_y - unusual_collision_box_factor_top)
+            local compare_right = math.ceil(ent.position.x + prototype_factor_rightbottom_x + unusual_collision_box_factor_right)
+            local compare_bottom = math.ceil(ent.position.y + prototype_factor_rightbottom_y + unusual_collision_box_factor_bottom)
             if (first_ent) then
                 first_ent = false
                 new_left = compare_left
@@ -50,9 +83,31 @@ function restrict_selection_area_to_entities(left, top, right, bottom, player)
     return new_left, new_top, new_right, new_bottom
 end
 
+function validate_coordinates_and_update_view(player, restrict_area_bool)
+    local frame_flow = mod_gui.get_frame_flow(player)
+    local current_view = frame_flow["region-cloner_control-window"]["region-cloner_coordinate-table"]
+    local old_left = tonumber(current_view["left_top_x"].text)
+    local old_top = tonumber(current_view["left_top_y"].text)
+    local old_right = tonumber(current_view["right_bottom_x"].text)
+    local old_bottom = tonumber(current_view["right_bottom_y"].text)
+    if (old_left and old_top and old_bottom and old_right) then
+        local new_left, new_top, new_right, new_bottom = old_left, old_top, old_right, old_bottom
+        if (restrict_area_bool) then
+            new_left, new_top, new_right, new_bottom = restrict_selection_area_to_entities(old_left, old_top, old_right, old_bottom, player)
+        end
+        current_view["left_top_x"].text = new_left
+        current_view["left_top_y"].text = new_top
+        current_view["right_bottom_x"].text = new_right
+        current_view["right_bottom_y"].text = new_bottom
+    else
+        player.print("A coordinate is not a number!")
+        return false
+    end
+end
+
 function validate_player_copy_paste_settings(player)
+    validate_coordinates_and_update_view(player, false)
     local top_gui = mod_gui.get_frame_flow(player)["region-cloner_control-window"]
-    local coord_table = top_gui["region-cloner_coordinate-table"]
     local direction_to_copy = top_gui["region-cloner_drop_down_table"]["region-cloner_direction-to-copy"].selected_index
     local times_to_paste = tonumber(top_gui["region-cloner_drop_down_table"]["number_of_copies"].text)
     if (times_to_paste) then
@@ -66,21 +121,6 @@ function validate_player_copy_paste_settings(player)
     end
     if not (direction_to_copy) then
         player.print("Somehow your direction to paste is not valid!")
-    end
-    local old_left = tonumber(coord_table["left_top_x"].text)
-    local old_top = tonumber(coord_table["left_top_y"].text)
-    local old_right = tonumber(coord_table["right_bottom_x"].text)
-    local old_bottom = tonumber(coord_table["right_bottom_y"].text)
-    if (old_left and old_top and old_bottom and old_right) then
-        local new_left, new_right = swap_to_fix_pairs(old_left, old_right)
-        local new_top, new_bottom = swap_to_fix_pairs(old_top, old_bottom)
-        coord_table["left_top_x"].text = new_left
-        coord_table["left_top_y"].text = new_top
-        coord_table["right_bottom_x"].text = new_right
-        coord_table["right_bottom_y"].text = new_bottom
-    else
-        player.print("A coordinate is not a number!")
-        return false
     end
     return true
 end
