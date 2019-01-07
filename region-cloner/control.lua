@@ -27,6 +27,7 @@ script.on_event({defines.events.on_gui_click}, function(event)
             player.print("Your inventory is too full to use this tool")
             return
         end
+        player.get_main_inventory().remove("region-cloner_selection-tool")
         player.cursor_stack.set_stack("region-cloner_selection-tool")
     end
     if (clicked_on == "restrict_selection_area_to_entities") then

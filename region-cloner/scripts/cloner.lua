@@ -332,8 +332,12 @@ function on_tick_behavior(source_left, source_top, source_right, source_bottom, 
                     if not (newent) then
                         newent = surface.find_entity(ent.name, {x_offset, y_offset})
                     end
-                    copy_entity(ent, newent)
-                    newent = nil
+                    if not (newent) then
+                        player.print("Something went horribly wrong, we tried to copy a " .. ent.name .. " but failed!")
+                    else
+                        copy_entity(ent, newent)
+                        newent = nil
+                    end
                 end
             end
         end
@@ -344,8 +348,15 @@ function on_tick_behavior(source_left, source_top, source_right, source_bottom, 
                 create_entity_values = {name = ent.name, position={x_offset, y_offset}, direction=ent.direction, force="player"}
                 if has_value(ent.type, low_priority_entities) then
                     local newent = surface.create_entity(create_entity_values)
-                    copy_entity(ent, newent)
-                    newent = nil
+                    if not (newent) then
+                        newent = surface.find_entity(ent.name, {x_offset, y_offset})
+                    end
+                    if not (newent) then
+                        player.print("Something went horribly wrong, we tried to copy a " .. ent.name .. " but failed!")
+                    else
+                        copy_entity(ent, newent)
+                        newent = nil
+                    end
                 end
             end
             if (true) then

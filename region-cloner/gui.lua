@@ -21,6 +21,7 @@ gui.create_gui = function (player)
         drop_down_table["number_of_copies"].style.left_padding = 8
         drop_down_table["number_of_copies"].style.right_padding = 8
         drop_down_table["number_of_copies"].style.align = "right"
+        drop_down_table["number_of_copies"].style.maximal_width = 100
 
     local button_control_table = mod_frame.add{type="table", column_count=2}
         button_control_table.add{type="button", name="restrict_selection_area_to_entities", caption="Shrink Selection Area", tooltip="Reduces the size of your selection area to include only the entities found in that area"}

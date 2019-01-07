@@ -99,6 +99,7 @@ function validate_coordinates_and_update_view(player, restrict_area_bool)
         current_view["left_top_y"].text = new_top
         current_view["right_bottom_x"].text = new_right
         current_view["right_bottom_y"].text = new_bottom
+        return true
     else
         player.print("A coordinate is not a number!")
         return false
@@ -106,7 +107,9 @@ function validate_coordinates_and_update_view(player, restrict_area_bool)
 end
 
 function validate_player_copy_paste_settings(player)
-    validate_coordinates_and_update_view(player, false)
+    if not (validate_coordinates_and_update_view(player, false)) then
+        return false
+    end
     local top_gui = mod_gui.get_frame_flow(player)["region-cloner_control-window"]
     local direction_to_copy = top_gui["region-cloner_drop_down_table"]["region-cloner_direction-to-copy"].selected_index
     local times_to_paste = tonumber(top_gui["region-cloner_drop_down_table"]["number_of_copies"].text)
