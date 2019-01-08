@@ -42,6 +42,7 @@ function convert_entity_collision_box_to_rotated_aware(ent)
             if (box.right_bottom.x ~= box.right_bottom.y) then
                 --[[Entity is not a square collision box]]
                 if has_value(ent.direction, {2, 6}) then
+                    --[[Rotate by swapping x and y coordinates]]
                     ltx, lty = swap_values(ltx, lty)
                     rbx, rby = swap_values(rbx, rby)
                 end

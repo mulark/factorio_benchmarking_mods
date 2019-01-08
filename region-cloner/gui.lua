@@ -23,7 +23,7 @@ gui.create_gui = function (player)
         drop_down_table["number_of_copies"].style.align = "right"
         drop_down_table["number_of_copies"].style.maximal_width = 100
 
-    local button_control_table = mod_frame.add{type="table", column_count=2}
+    local button_control_table = mod_frame.add{type="table", column_count=3}
         button_control_table.add{type="button", name="restrict_selection_area_to_entities", caption="Shrink Selection Area", tooltip="Reduces the size of your selection area to include only the entities found in that area"}
         local get_selection_tool_button = button_control_table.add{type="button", name="get_selection_tool_button", caption="Get Selection Tool"}
         local copy_paste_start_button = button_control_table.add{type="button", name="issue_copy_pastes", caption="Start"}

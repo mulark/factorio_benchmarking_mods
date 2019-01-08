@@ -1,3 +1,6 @@
+0.0.5:
+Copy the temperature of entities with heat, gui tweak
+
 0.0.4:
 Make collision boxes consider rotation/orientation of entity
 

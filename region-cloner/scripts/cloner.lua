@@ -64,6 +64,9 @@ function copy_properties (original_entity, cloned_entity)
     cloned_entity.copy_settings(original_entity)
     cloned_entity.orientation = original_entity.orientation
     cloned_entity.direction = original_entity.direction
+    if (original_entity.temperature) then
+        cloned_entity.temperature = original_entity.temperature
+    end
 end
 
 local function internal_inventory_copy(original_entity, cloned_entity, INV_DEFINE)
