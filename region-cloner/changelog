@@ -1,8 +1,11 @@
-0.0.1:
-Initial release
+0.0.4:
+Make collision boxes consider rotation/orientation of entity
+
+0.0.3:
+Fix a couple bugs, gui tweak, add a catch for 1 case we can't copy
 
 0.0.2:
 Make cloning the rail grid based on if any rail is detected, not forced at all times; fix bug for copying to the north and west.
 
-0.0.3:
-Fix a couple bugs, gui tweak, add a catch for 1 case we can't copy
+0.0.1:
+Initial release

@@ -30,6 +30,35 @@ function decode_direction_for_unusual_collision_box(direction, type)
     return offset_left, offset_top, offset_right, offset_bottom
 end
 
+local function swap_values(first, second)
+    return second, first
+end
+
+function convert_entity_collision_box_to_rotated_aware(ent)
+    local box = ent.prototype.collision_box
+    local ltx, lty, rbx, rby = box.left_top.x, box.left_top.y, box.right_bottom.x, box.right_bottom.y
+    if (ent.supports_direction) then
+        if (box.left_top.x ~= box.left_top.y) then
+            if (box.right_bottom.x ~= box.right_bottom.y) then
+                --[[Entity is not a square collision box]]
+                if has_value(ent.direction, {2, 6}) then
+                    ltx, lty = swap_values(ltx, lty)
+                    rbx, rby = swap_values(rbx, rby)
+                end
+            end
+        end
+    else
+        if (ent.orientation) then
+            if has_value(ent.orientation, {0.25, 0.75}) then
+                ltx, lty = swap_values(ltx, lty)
+                rbx, rby = swap_values(rbx, rby)
+            end
+        end
+    end
+    return ltx, lty, rbx, rby
+end
+
+
 function restrict_selection_area_to_entities(left, top, right, bottom, player)
     local first_ent = true
     local problematic_collision_box_entity_types = {"curved-rail"}
@@ -39,22 +68,15 @@ function restrict_selection_area_to_entities(left, top, right, bottom, player)
     for _, ent in pairs(player.surface.find_entities_filtered{area={{left, top},{right,bottom}}, force="player"}) do
         if not has_value(ent.type, entities_not_allowed_type) then
             local unusual_collision_box_factor_left, unusual_collision_box_factor_top, unusual_collision_box_factor_right, unusual_collision_box_factor_bottom = 0, 0, 0, 0
-            local prototype_box = ent.prototype.collision_box
-            local prototype_factor_lefttop_x = prototype_box.left_top.x
-            local prototype_factor_lefttop_y = prototype_box.left_top.y
-            local prototype_factor_rightbottom_x = prototype_box.right_bottom.x
-            local prototype_factor_rightbottom_y = prototype_box.right_bottom.y
+            local ltx, lty, rbx, rby = convert_entity_collision_box_to_rotated_aware(ent)
             if has_value(ent.type, problematic_collision_box_entity_types) then
                 unusual_collision_box_factor_left, unusual_collision_box_factor_top, unusual_collision_box_factor_right, unusual_collision_box_factor_bottom = decode_direction_for_unusual_collision_box(ent.direction, ent.type)
-                prototype_factor_lefttop_x = 0
-                prototype_factor_lefttop_y = 0
-                prototype_factor_rightbottom_x = 0
-                prototype_factor_rightbottom_y = 0
+                ltx, lty, rbx, rby = 0, 0, 0, 0
             end
-            local compare_left = math.floor(ent.position.x + prototype_factor_lefttop_x - unusual_collision_box_factor_left)
-            local compare_top = math.floor(ent.position.y + prototype_factor_lefttop_y - unusual_collision_box_factor_top)
-            local compare_right = math.ceil(ent.position.x + prototype_factor_rightbottom_x + unusual_collision_box_factor_right)
-            local compare_bottom = math.ceil(ent.position.y + prototype_factor_rightbottom_y + unusual_collision_box_factor_bottom)
+            local compare_left = math.floor(ent.position.x + ltx - unusual_collision_box_factor_left)
+            local compare_top = math.floor(ent.position.y + lty - unusual_collision_box_factor_top)
+            local compare_right = math.ceil(ent.position.x + rbx + unusual_collision_box_factor_right)
+            local compare_bottom = math.ceil(ent.position.y + rby + unusual_collision_box_factor_bottom)
             if (first_ent) then
                 first_ent = false
                 new_left = compare_left
