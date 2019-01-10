@@ -11,7 +11,6 @@ end)
 
 script.on_event(defines.events.on_player_created, function(event)
     gui.create_gui(game.players[event.player_index])
-    game.players[event.player_index].print("GUI created!")
 end)
 
 script.on_event({defines.events.on_gui_click}, function(event)
@@ -39,23 +38,22 @@ script.on_event({defines.events.on_gui_click}, function(event)
         end
     end
 end)
+
 script.on_event({defines.events.on_player_selected_area}, function(event)
     local player = game.players[event.player_index]
-    if (player.cursor_stack.name ~= "region-cloner_selection-tool") then return end
-    local frame_flow = mod_gui.get_frame_flow(player)
-    local coord_table = frame_flow["region-cloner_control-window"]["region-cloner_coordinate-table"]
-    if coord_table["left_top_x"] then
-        coord_table["left_top_x"].text = math.floor(event.area.left_top.x)
-    end
-    if coord_table["left_top_y"] then
-        coord_table["left_top_y"].text = math.floor(event.area.left_top.y)
-    end
-    if coord_table["right_bottom_x"] then
-        coord_table["right_bottom_x"].text = math.ceil(event.area.right_bottom.x)
-    end
-    if coord_table["right_bottom_y"] then
-        coord_table["right_bottom_y"].text = math.ceil(event.area.right_bottom.y)
+    if (player.cursor_stack.name == "region-cloner_selection-tool") then
+        local coord_table = mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_coordinate-table"]
+        if coord_table["left_top_x"] then
+            coord_table["left_top_x"].text = math.floor(event.area.left_top.x)
+        end
+        if coord_table["left_top_y"] then
+            coord_table["left_top_y"].text = math.floor(event.area.left_top.y)
+        end
+        if coord_table["right_bottom_x"] then
+            coord_table["right_bottom_x"].text = math.ceil(event.area.right_bottom.x)
+        end
+        if coord_table["right_bottom_y"] then
+            coord_table["right_bottom_y"].text = math.ceil(event.area.right_bottom.y)
+        end
     end
 end)
-
-script.on_event(defines.events.on_tick, nil)

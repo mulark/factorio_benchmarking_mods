@@ -1,3 +1,5 @@
+require("common")
+
 function correct_for_rail_grid(tile_paste_length)
     if ((tile_paste_length % 2) ~= 0) then
         if (tile_paste_length < 0) then
@@ -7,15 +9,6 @@ function correct_for_rail_grid(tile_paste_length)
         end
     end
     return tile_paste_length
-end
-
-local function has_value (val, tab)
-    for index, value in ipairs(tab) do
-        if value == val then
-            return true
-        end
-    end
-    return false
 end
 
 function swap_to_fix_pairs(negative_most, positive_most)
@@ -236,161 +229,95 @@ function clean_entity_pool (entity_pool, tiles_to_paste_x, tiles_to_paste_y)
     return tiles_to_paste_x, tiles_to_paste_y
 end
 
-local function ensure_entity_pool_valid(pool)
+local function ensure_entity_pool_valid(player, pool)
     for key,ent in pairs(pool) do
         if not (ent.valid) then
+            player.print("pool member invalid")
             pool[key] = nil
         end
     end
 end
 
-local function find_charting_coordinates(entity_pool)
-    local left, right
-    for key,ent in pairs (entity_pool) do
-        if not (left) then
-            left = ent.position.x
-            right = ent.position.x
-        end
-        if (left > ent.position.x) then
-            left = ent.position.x
-        end
-        if (right < ent.position.x) then
-            right = ent.position.x
-        end
-    end
-    return left, right
+local function convert_bounding_box_to_current_paste_region(tpx, tpy, current_paste, bounding_box)
+    local modified_box = {}
+    local left_top = {}
+    local right_bottom = {}
+    left_top["x"] = bounding_box.left_top.x + (tpx * current_paste)
+    left_top["y"] = bounding_box.left_top.y + (tpy * current_paste)
+    --[[Subtract 0.01 tiles off of the returned bounding_box because it will chart the next chunk over if bounding_box is at the tile border]]
+    right_bottom["x"] = bounding_box.right_bottom.x + (tpx * current_paste) - 0.01
+    right_bottom["y"] = bounding_box.right_bottom.y + (tpy * current_paste) - 0.01
+    modified_box["left_top"] = left_top
+    modified_box["right_bottom"] = right_bottom
+    return modified_box
 end
 
-local function ensure_inserter_stack_valid(pool)
-    for key,ent in pairs(pool) do
-        if not (ent.held_stack.valid) then
-            pool[key] = nil
-        end
+local function smart_chart(player, tpx, tpy, current_paste, bounding_box)
+    local new_box = convert_bounding_box_to_current_paste_region(tpx, tpy, current_paste, bounding_box)
+    player.force.chart(player.surface, new_box)
+end
+
+local function clean_paste_area(player, tpx, tpy, current_paste, bounding_box)
+    local new_box = convert_bounding_box_to_current_paste_region(tpx, tpy, current_paste, bounding_box)
+    for _, ent in pairs(player.surface.find_entities_filtered{area=new_box}) do
+        ent.destroy()
     end
 end
 
-
-function clone_region_pre(source_left, source_top, source_right, source_bottom, times_to_paste, tiles_to_paste_x, tiles_to_paste_y, player)
-    local surface = player.surface
-    local start_tick = game.tick + 1
-    local low_priority_entities = {"beacon", "locomotive", "cargo-wagon", "logistic-robot", "construction-robot", "fluid-wagon"}
-    local start_tile_x, start_tile_y = 0
-    if (tiles_to_paste_x > 0) then
-        --[[Pasting to the east]]
-        start_tile_x = source_left
-    else
-        --[[Pasting to the west]]
-        start_tile_x = source_right
-    end
-    if (tiles_to_paste_y > 0) then
-        --[[Pasting to the south]]
-        start_tile_y = source_top
-    else
-        --[[Pasting to the north]]
-        start_tile_y = source_bottom
-    end
-    local entity_pool = surface.find_entities_filtered({area={{source_left, source_top}, {source_right, source_bottom}}, force="player"})
-    tiles_to_paste_x, tiles_to_paste_y = clean_entity_pool(entity_pool, tiles_to_paste_x, tiles_to_paste_y)
-    script.on_event(defines.events.on_tick, function(event)
-        on_tick_behavior(source_left, source_top, source_right, source_bottom, times_to_paste, tiles_to_paste_x, tiles_to_paste_y, entity_pool, low_priority_entities, start_tile_x, start_tile_y, start_tick, player, surface)
-    end)
-end
-
-function on_tick_behavior(source_left, source_top, source_right, source_bottom, times_to_paste, tiles_to_paste_x, tiles_to_paste_y, entity_pool, low_priority_entities, start_tile_x, start_tile_y, start_tick, player, surface)
-    local ticks_per_paste = 2
+function clone_entity_pool(player, entity_pool, tpx, tpy, current_paste, times_to_paste, bounding_box, flag_complete)
     local create_entity_values = {}
-    for current_paste = 1, times_to_paste do
-        if (game.tick == (start_tick + (current_paste * ticks_per_paste))) then
-            if (true) then
-                local top, bottom = 0
-                local left, right = 0
-                if (tiles_to_paste_y ~= 0) then
-                    top = start_tile_y + tiles_to_paste_y * (current_paste + 1)
-                    bottom = start_tile_y + tiles_to_paste_y * (current_paste)
-                else
-                    top = source_top
-                    bottom = source_bottom
-                end
-                if (tiles_to_paste_x ~= 0) then
-                    left = start_tile_x + tiles_to_paste_x * (current_paste + 1)
-                    right = start_tile_x + tiles_to_paste_x * (current_paste)
-                else
-                    left = source_left
-                    right = source_right
-                end
-                left, right = swap_to_fix_pairs(left, right)
-                top, bottom = swap_to_fix_pairs(top, bottom)
-                clean_paste_area(surface, left, top, right, bottom)
-            end
-            ensure_entity_pool_valid(entity_pool)
-            for key, ent in pairs(entity_pool) do
-                local x_offset = ent.position.x + tiles_to_paste_x*current_paste
-                local y_offset = ent.position.y + tiles_to_paste_y*current_paste
+    local surface = player.surface
+    clean_paste_area(player, tpx, tpy, current_paste, bounding_box)
+    ensure_entity_pool_valid(player, entity_pool)
+    for _,ent in pairs(entity_pool) do
+        if not has_value(ent.type, low_priority_entities) then
+            if not (current_paste > times_to_paste) then
+                --[[We will run over by 1 on current paste, because we need to copy the low priority entities]]
+                --[[We don't want to copy any more normal priority entities on the last paste]]
+                local x_offset = ent.position.x + tpx * current_paste
+                local y_offset = ent.position.y + tpy * current_paste
                 create_entity_values = {name = ent.name, position={x_offset, y_offset}, direction=ent.direction, force="player"}
-                if not has_value(ent.type, low_priority_entities) then
-                    if (ent.type == "underground-belt") then
-                        create_entity_values.type = ent.belt_to_ground_type
-                    end
-                    local newent = surface.create_entity(create_entity_values)
-                    if not (newent) then
-                        newent = surface.find_entity(ent.name, {x_offset, y_offset})
-                    end
-                    if not (newent) then
-                        player.print("Something went horribly wrong, we tried to copy a " .. ent.name .. " but failed!")
-                    else
-                        copy_entity(ent, newent)
-                        newent = nil
-                    end
+                if (ent.type == "underground-belt") then
+                    create_entity_values.type = ent.belt_to_ground_type
+                end
+                local newent = surface.create_entity(create_entity_values)
+                if not (newent) then
+                    newent = surface.find_entity(ent.name, {x_offset, y_offset})
+                end
+                if not (newent) then
+                    player.print("Something went horribly wrong, we tried to copy a " .. ent.name .. " but failed!")
+                else
+                    copy_entity(ent, newent)
+                    newent = nil
                 end
             end
         end
-        if (game.tick == (start_tick + (current_paste * ticks_per_paste) + 1)) then
-            for key, ent in pairs(entity_pool) do
-                local x_offset = ent.position.x + tiles_to_paste_x*current_paste
-                local y_offset = ent.position.y + tiles_to_paste_y*current_paste
-                create_entity_values = {name = ent.name, position={x_offset, y_offset}, direction=ent.direction, force="player"}
-                if has_value(ent.type, low_priority_entities) then
-                    local newent = surface.create_entity(create_entity_values)
-                    if not (newent) then
-                        newent = surface.find_entity(ent.name, {x_offset, y_offset})
-                    end
-                    if not (newent) then
-                        player.print("Something went horribly wrong, we tried to copy a " .. ent.name .. " but failed!")
-                    else
-                        copy_entity(ent, newent)
-                        newent = nil
-                    end
+        if has_value(ent.type, low_priority_entities) then
+            local x_offset = ent.position.x + tpx * (current_paste - 1)
+            local y_offset = ent.position.y + tpy * (current_paste - 1)
+            create_entity_values = {name = ent.name, position={x_offset, y_offset}, direction=ent.direction, force="player"}
+            if (x_offset == ent.position.x and y_offset == ent.position.y) then
+                --[[Do nothing]]
+            else
+                --[[If we're on the first paste then don't run any low priority entities]]
+                local newent = surface.create_entity(create_entity_values)
+                if not (newent) then
+                    newent = surface.find_entity(ent.name, {x_offset, y_offset})
                 end
-            end
-            if (true) then
-                local top, bottom = 0
-                local left, right = 0
-                if (tiles_to_paste_y ~= 0) then
-                    top = start_tile_y + tiles_to_paste_y * (current_paste + 1)
-                    bottom = start_tile_y + tiles_to_paste_y * (current_paste) - 0.1
+                if not (newent) then
+                    player.print("Something went horribly wrong, we tried to copy a " .. ent.name .. " but failed!")
                 else
-                    top = source_top
-                    bottom = source_bottom - 0.1
+                    copy_entity(ent, newent)
+                    newent = nil
                 end
-                if (tiles_to_paste_x ~= 0) then
-                    left = start_tile_x + tiles_to_paste_x * (current_paste + 1)
-                    right = start_tile_x + tiles_to_paste_x * (current_paste) - 0.1
-                else
-                    left = source_left
-                    right = source_right - 0.1
-                end
-                left, right = swap_to_fix_pairs(left, right)
-                top, bottom = swap_to_fix_pairs(top, bottom)
-                player.force.chart(surface, {{left, top}, {right, bottom}})
             end
         end
-        if (game.tick == (start_tick + ((times_to_paste + 1)*ticks_per_paste) + 600 )) then
-            for key, ent in pairs(entity_pool) do
-                if (ent.valid) then
-                    ent.active = true
-                end
-            end
-            script.on_event(defines.events.on_tick, nil)
+        smart_chart(player, tpx, tpy, (current_paste - 1), bounding_box)
+        --[[Chart after the low priority entities are created, subtract 1 for the penalty low_priority_entities have]]
+        if ((current_paste - 1) > times_to_paste) then
+            --[[Now we have finshed pasting]]
+            return current_paste, true
         end
     end
+    return (current_paste + 1), false
 end

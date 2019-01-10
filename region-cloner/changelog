@@ -1,3 +1,9 @@
+0.1.1:
+Hotfix to make the job queue a global variable so multiplayer works
+
+0.1.0:
+Rework cloning system to use jobs. This should allow multiplayer simultaneous cloning.
+
 0.0.5:
 Copy the temperature of entities with heat, gui tweak
 

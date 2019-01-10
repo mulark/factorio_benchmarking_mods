@@ -1,15 +1,8 @@
 require("scripts.cloner")
+require("common")
+local job = require("job")
 
-local entities_not_allowed_type = {"player"}
-
-local function has_value (val, tab)
-    for index, value in ipairs(tab) do
-        if value == val then
-            return true
-        end
-    end
-    return false
-end
+job_queue = {}
 
 function decode_direction_for_unusual_collision_box(direction, type)
     local offset_left, offset_top, offset_right, offset_bottom = 4, 4, 4, 4
@@ -59,7 +52,6 @@ function convert_entity_collision_box_to_rotated_aware(ent)
     return ltx, lty, rbx, rby
 end
 
-
 function restrict_selection_area_to_entities(left, top, right, bottom, player)
     local first_ent = true
     local problematic_collision_box_entity_types = {"curved-rail"}
@@ -67,7 +59,7 @@ function restrict_selection_area_to_entities(left, top, right, bottom, player)
     left, right = swap_to_fix_pairs(left, right)
     top, bottom = swap_to_fix_pairs(top, bottom)
     for _, ent in pairs(player.surface.find_entities_filtered{area={{left, top},{right,bottom}}, force="player"}) do
-        if not has_value(ent.type, entities_not_allowed_type) then
+        if not has_value(ent.type, entities_to_not_clone) then
             local unusual_collision_box_factor_left, unusual_collision_box_factor_top, unusual_collision_box_factor_right, unusual_collision_box_factor_bottom = 0, 0, 0, 0
             local ltx, lty, rbx, rby = convert_entity_collision_box_to_rotated_aware(ent)
             if has_value(ent.type, problematic_collision_box_entity_types) then
@@ -165,17 +157,54 @@ local function decode_direction_to_copy(direction_to_copy)
     return tile_paste_direction_x, tile_paste_direction_y
 end
 
+local function clone_entites_by_job(job)
+    if (job.entity_pool) then
+        --[[In 0.17 we might not need the entity_pool anymore]]
+        if (job.current_paste == 1) then
+            for _, ent in pairs(job.entity_pool) do
+                if (ent.valid) then
+                    if not has_value(ent.type, desync_if_entities_are_inactive_entities) then
+                        ent.active = false
+                    end
+                end
+            end
+        end
+        job.current_paste, job.flag_complete = clone_entity_pool(job.player, job.entity_pool, job.tiles_to_paste_x, job.tiles_to_paste_y, job.current_paste, job.times_to_paste, job.bounding_box, job.flag_complete)
+    end
+end
+
+
+
 function issue_copy_paste(player)
-    local top_gui = mod_gui.get_frame_flow(player)["region-cloner_control-window"]
-    local coord_table = top_gui["region-cloner_coordinate-table"]
-    local left = tonumber(coord_table["left_top_x"].text)
-    local top = tonumber(coord_table["left_top_y"].text)
-    local right = tonumber(coord_table["right_bottom_x"].text)
-    local bottom = tonumber(coord_table["right_bottom_y"].text)
-    local times_to_paste = tonumber(top_gui["region-cloner_drop_down_table"]["number_of_copies"].text)
-    local direction_to_copy = top_gui["region-cloner_drop_down_table"]["region-cloner_direction-to-copy"].selected_index
-    local tile_paste_direction_x, tile_paste_direction_y = decode_direction_to_copy(direction_to_copy)
-    local tiles_to_paste_x = (right - left) * tile_paste_direction_x
-    local tiles_to_paste_y = (bottom - top) * tile_paste_direction_y
-    clone_region_pre(left, top, right, bottom, times_to_paste, tiles_to_paste_x, tiles_to_paste_y, player)
+    validate_player_copy_paste_settings(player)
+    job = job.create(player)
+    job_queue[player.name] = job
+    script.on_event(defines.events.on_tick, function(event)
+        if (game.tick % TICKS_PER_PASTE) then
+            run_on_tick()
+        end
+    end)
+end
+
+function run_on_tick()
+    for job_key, job in pairs(job_queue) do
+        game.players[1].print(serpent.line(job.current_paste))
+        if (job.flag_complete) then
+            --[[If this job is finished then set the entity pool active and unregister the job]]
+            if (job.entity_pool) then
+                for _,ent in pairs(job.entity_pool) do
+                    if (ent.valid) then
+                        ent.active = true
+                    end
+                end
+            end
+            job_queue[job_key] = nil
+        else
+            clone_entites_by_job(job)
+        end
+    end
+    if not next(job_queue) then
+        --[[If the job_queue has no jobs then unregister the on_tick event handler]]
+        script.on_event(defines.events.on_tick, nil)
+    end
 end
