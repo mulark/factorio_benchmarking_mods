@@ -1,20 +1,13 @@
 require("common")
-
-local job = {}
-
 --[[player, entity_pool, tiles_to_paste_x, tiles_to_paste_y, current_paste, times_to_paste, bounding_box]]
 
 local function get_region_bounding_box(player)
-    local bounding_box = {}
-    local left_top = {}
-    local right_bottom = {}
     local coord_table = mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_coordinate-table"]
-    left_top["x"] = tonumber(coord_table["left_top_x"].text)
-    left_top["y"] = tonumber(coord_table["left_top_y"].text)
-    right_bottom["x"] = tonumber(coord_table["right_bottom_x"].text)
-    right_bottom["y"] = tonumber(coord_table["right_bottom_y"].text)
-    bounding_box["left_top"] = left_top
-    bounding_box["right_bottom"] = right_bottom
+    local left = tonumber(coord_table["left_top_x"].text)
+    local top = tonumber(coord_table["left_top_y"].text)
+    local right = tonumber(coord_table["right_bottom_x"].text)
+    local bottom = tonumber(coord_table["right_bottom_y"].text)
+    local bounding_box = construct_bounding_box(left, top, right, bottom)
     return bounding_box
 end
 
@@ -71,19 +64,44 @@ local function decode_direction_to_copy(gui_dropdown_index)
 end
 
 
-local function convert_box_to_offsets(player, bounding_box)
-    local gui_dropdown_index = mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_drop_down_table"]["region-cloner_direction-to-copy"].selected_index
-    local tpx, tpy = decode_direction_to_copy(gui_dropdown_index)
+local function convert_box_to_offsets(gui_direction_to_copy_index, bounding_box)
+    local tpx, tpy = decode_direction_to_copy(gui_direction_to_copy_index)
     tpx = tpx * (bounding_box.right_bottom.x - bounding_box.left_top.x)
     tpy = tpy * (bounding_box.right_bottom.y - bounding_box.left_top.y)
     return tpx,tpy
 end
 
-job.create = function(player)
+function virtual_job_create(left, top, right, bottom, desired_times_to_paste)
+    local job = {}
+    local player = {}
+    player.name = "bob"
+    player.surface = game.surfaces[1]
+    player.force = game.forces["player"]
+    player.print = function(data)
+        for _, p in pairs(game.players) do
+            p.print("virtual job message: " .. data)
+        end
+    end
+    job.player = player
+    job.bounding_box = construct_bounding_box(left, top, right, bottom)
+    local temp_ent_pool = player.surface.find_entities_filtered{area=job.bounding_box, force="player"}
+    local gui_dropdown_index = 2
+    job.tiles_to_paste_x, job.tiles_to_paste_y = convert_box_to_offsets(gui_dropdown_index, job.bounding_box)
+    job.tiles_to_paste_x, job.tiles_to_paste_y = clean_entity_pool(temp_ent_pool, job.tiles_to_paste_x, job.tiles_to_paste_y)
+    job.entity_pool = temp_ent_pool
+    job.times_to_paste = desired_times_to_paste
+    job.current_paste = 1
+    job.flag_complete = false
+    return job
+end
+
+function job_create(player)
+    local job = {}
     job.player = player
     job.bounding_box = get_region_bounding_box(player)
     local temp_ent_pool = player.surface.find_entities_filtered{area=job.bounding_box, force="player"}
-    job.tiles_to_paste_x, job.tiles_to_paste_y = convert_box_to_offsets(player, job.bounding_box)
+    local gui_dropdown_index = mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_drop_down_table"]["region-cloner_direction-to-copy"].selected_index
+    job.tiles_to_paste_x, job.tiles_to_paste_y = convert_box_to_offsets(gui_dropdown_index, job.bounding_box)
     job.tiles_to_paste_x, job.tiles_to_paste_y = clean_entity_pool(temp_ent_pool, job.tiles_to_paste_x, job.tiles_to_paste_y)
     job.entity_pool = temp_ent_pool
     job.times_to_paste = tonumber(mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_drop_down_table"]["number_of_copies"].text)

@@ -312,12 +312,12 @@ function clone_entity_pool(player, entity_pool, tpx, tpy, current_paste, times_t
                 end
             end
         end
-        smart_chart(player, tpx, tpy, (current_paste - 1), bounding_box)
-        --[[Chart after the low priority entities are created, subtract 1 for the penalty low_priority_entities have]]
-        if ((current_paste - 1) > times_to_paste) then
-            --[[Now we have finshed pasting]]
-            return current_paste, true
-        end
+    end
+    smart_chart(player, tpx, tpy, (current_paste - 1), bounding_box)
+    --[[Chart after the low priority entities are created, subtract 1 for the penalty low_priority_entities have]]
+    if ((current_paste) > times_to_paste) then
+        --[[Now we have finshed pasting]]
+        return current_paste, true
     end
     return (current_paste + 1), false
 end

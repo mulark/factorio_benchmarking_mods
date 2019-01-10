@@ -1,6 +1,6 @@
 require("scripts.cloner")
 require("common")
-local job = require("job")
+require("job")
 
 job_queue = {}
 
@@ -177,8 +177,10 @@ end
 
 function issue_copy_paste(player)
     validate_player_copy_paste_settings(player)
-    job = job.create(player)
-    job_queue[player.name] = job
+    local my_job = job_create(player)
+    job_queue[player.name] = my_job
+    --[[local job_from_another_player = virtual_job_create(32, -32, 64, 0, 100)
+    job_queue[job_from_another_player.player.name] = job_from_another_player]]
     script.on_event(defines.events.on_tick, function(event)
         if (game.tick % TICKS_PER_PASTE) then
             run_on_tick()
@@ -188,7 +190,6 @@ end
 
 function run_on_tick()
     for job_key, job in pairs(job_queue) do
-        game.players[1].print(serpent.line(job.current_paste))
         if (job.flag_complete) then
             --[[If this job is finished then set the entity pool active and unregister the job]]
             if (job.entity_pool) then

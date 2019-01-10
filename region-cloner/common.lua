@@ -19,3 +19,16 @@ function has_value (val, tab)
     end
     return false
 end
+
+function construct_bounding_box(left, top, right, bottom)
+    local box = {}
+    local left_top = {}
+    local right_bottom = {}
+    left_top["x"] = left
+    left_top["y"] = top
+    right_bottom["x"] = right
+    right_bottom["y"] = bottom
+    box["left_top"] = left_top
+    box["right_bottom"] = right_bottom
+    return box
+end
