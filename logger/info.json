@@ -1,0 +1,11 @@
+{
+  "name": "logger",
+  "version": "0.0.1",
+  "title": "logger",
+  "author": "mulark",
+  "contact": "",
+  "homepage": "mulark.gitub.io",
+  "description": "Logs the game tick to the factorio current file every tick",
+  "factorio_version": "0.16",
+  "dependencies": []
+}
