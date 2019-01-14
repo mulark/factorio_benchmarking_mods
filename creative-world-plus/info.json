@@ -1,0 +1,11 @@
+{
+  "name": "creative-world-plus",
+  "version": "0.0.3",
+  "title": "Creative World Plus",
+  "author": "mulark",
+  "contact": "",
+  "homepage": "mulark.github.io/my_mods.html#creative-world-plus",
+  "description": "Sets the entire world to refined concrete. Uses a more performant way to set the tiles. Removes annoying rocks, fish, and decorations (optional).",
+  "factorio_version": "0.16",
+  "dependencies": []
+}
