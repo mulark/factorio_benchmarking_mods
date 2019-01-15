@@ -160,19 +160,74 @@ end
 local function clone_entites_by_job(job)
     if (job.entity_pool) then
         --[[In 0.17 we might not need the entity_pool anymore]]
-        if (job.current_paste == 1) then
-            for _, ent in pairs(job.entity_pool) do
-                if (ent.valid) then
-                    if not has_value(ent.type, desync_if_entities_are_inactive_entities) then
-                        ent.active = false
+        if next(job.entity_pool) then
+            --[[If there's at least 1 thing in the entity pool]]
+            if (job.current_paste == 1) then
+                for _, ent in pairs(job.entity_pool) do
+                    if (ent.valid) then
+                        if not has_value(ent.type, desync_if_entities_are_inactive_entities) then
+                            ent.active = false
+                        end
                     end
                 end
             end
+            job.current_paste, job.flag_complete = clone_entity_pool(job.player, job.entity_pool, job.tiles_to_paste_x, job.tiles_to_paste_y, job.current_paste, job.times_to_paste, job.bounding_box, job.flag_complete)
+        else
+            job.player.print("You had valid copy paste settings but there were no entities to clone!")
+            job.flag_complete = true
+            update_player_progress_bars(job_queue)
         end
-        job.current_paste, job.flag_complete = clone_entity_pool(job.player, job.entity_pool, job.tiles_to_paste_x, job.tiles_to_paste_y, job.current_paste, job.times_to_paste, job.bounding_box, job.flag_complete)
     end
 end
 
+--[[TODO: put this gui junk in gui.lua]]
+function register_gui_job(player, job)
+    local job_pane = mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_job-watcher"]
+    local job_name = "region-cloner_" .. job.player.name .. "_job"
+    job_pane.add{type="table", column_count = 3, name=job_name}
+    job_pane[job_name].add{type="label", caption=job.player.name}
+    local pbar = job_pane[job_name].add{type="progressbar", value=job.current_paste / job.times_to_paste, name = job_name .. "_job_progress"}
+    pbar.style.horizontally_stretchable = true
+    local cancelbutton = job_pane[job_name].add{type="button", name = job_name .. "_cancel_button", tooltip="Cancel ongoing copy paste job", caption="x"}
+end
+
+function unregister_gui_job(player, job)
+    local job_pane = mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_job-watcher"]
+    local job_name = "region-cloner_" .. job.player.name .. "_job"
+    if (job_pane[job_name]) then
+        job_pane[job_name].destroy()
+    end
+    if not next(job_pane.children) then
+        job_pane.style.visible = false
+    end
+end
+
+function update_job_gui_progress(player, job)
+    local job_pane = mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_job-watcher"]
+    local job_name = "region-cloner_" .. job.player.name .. "_job"
+    if (job_pane[job_name][job_name .. "_job_progress"]) then
+        job_pane[job_name][job_name .. "_job_progress"].value = job.current_paste / job.times_to_paste
+    end
+end
+
+function update_player_progress_bars(job_queue)
+    for _, player in pairs(game.players) do
+        local job_pane = mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_job-watcher"]
+        for _, job in pairs(job_queue) do
+            if (job.flag_complete) then
+                unregister_gui_job(player, job)
+            else
+                if (job.times_to_paste > 1) then
+                    job_pane.style.visible = true
+                    if not (job_pane["region-cloner_" .. job.player.name .. "_job"]) then
+                        register_gui_job(player, job)
+                    end
+                    update_job_gui_progress(player, job)
+                end
+            end
+        end
+    end
+end
 
 
 function issue_copy_paste(player)
@@ -204,6 +259,7 @@ function run_on_tick()
             clone_entites_by_job(job)
         end
     end
+    update_player_progress_bars(job_queue)
     if not next(job_queue) then
         --[[If the job_queue has no jobs then unregister the on_tick event handler]]
         script.on_event(defines.events.on_tick, nil)

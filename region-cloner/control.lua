@@ -37,6 +37,12 @@ script.on_event({defines.events.on_gui_click}, function(event)
             issue_copy_paste(player)
         end
     end
+    for _, job in pairs (job_queue) do
+        if (clicked_on == job.cancel_button_name) then
+            job.flag_complete = true
+            update_player_progress_bars(job_queue)
+        end
+    end
 end)
 
 script.on_event({defines.events.on_player_selected_area}, function(event)

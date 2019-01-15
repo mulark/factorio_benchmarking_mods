@@ -28,6 +28,11 @@ gui.create_gui = function (player)
         local get_selection_tool_button = button_control_table.add{type="button", name="get_selection_tool_button", caption="Get Selection Tool"}
         local copy_paste_start_button = button_control_table.add{type="button", name="issue_copy_pastes", caption="Start"}
         copy_paste_start_button.style.align="right"
+
+    --[[Player, job progress bar, job cancel button]]
+    local job_watcher = mod_frame.add{type="frame", name="region-cloner_job-watcher", direction="vertical"}
+    job_watcher.style.visible = false
+
 end
 
 gui.clear_gui = function (player)

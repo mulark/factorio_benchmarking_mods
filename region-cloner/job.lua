@@ -90,6 +90,7 @@ function virtual_job_create(left, top, right, bottom, desired_times_to_paste)
     job.times_to_paste = desired_times_to_paste
     job.current_paste = 1
     job.flag_complete = false
+    job.cancel_button_name = "region-cloner_" .. job.player.name .. "_job" .. "_cancel_button"
     return job
 end
 
@@ -105,6 +106,7 @@ function job_create(player)
     job.times_to_paste = tonumber(mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_drop_down_table"]["number_of_copies"].text)
     job.current_paste = 1
     job.flag_complete = false
+    job.cancel_button_name = "region-cloner_" .. job.player.name .. "_job" .. "_cancel_button"
     return job
 end
 
