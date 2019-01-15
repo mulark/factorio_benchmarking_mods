@@ -74,8 +74,13 @@ local function internal_inventory_copy(original_entity, cloned_entity, INV_DEFIN
 end
 
 function copy_inventories_and_fluid (original_entity, cloned_entity)
-    internal_inventory_copy(original_entity, cloned_entity, defines.inventory.chest)
+    --[[Defines are not strict which means certain entities have inventory defines which make no sense]]
+    if not has_value(original_entity.type, HAS_DEFINES_INVENTORY_CHEST_BUT_SHOULDNT_TYPES) then
+        --[[Please wube why is this necessary?]]
+        internal_inventory_copy(original_entity, cloned_entity, defines.inventory.chest)
+    end
     internal_inventory_copy(original_entity, cloned_entity, defines.inventory.rocket_silo_result)
+    --[[Furnace source and result here copy assembling machine inventories as well]]
     internal_inventory_copy(original_entity, cloned_entity, defines.inventory.furnace_source)
     internal_inventory_copy(original_entity, cloned_entity, defines.inventory.furnace_result)
     if (original_entity.get_module_inventory()) then
@@ -127,12 +132,13 @@ function copy_resources (original_entity, cloned_entity)
             local cloned_resource = surface.create_entity({name = resource.name, position = cloned_entity.position, force = "neutral", amount = resource.amount})
             --[[If we're not an infinite resource, then go ahead and ensure we have enough material--]]
             if (resource.initial_amount) then
-                local newresource = surface.find_entity(resource.name, cloned_entity.position)
-                newresource.initial_amount = resource.initial_amount
+                cloned_resource.initial_amount = resource.initial_amount
             else
                 resource.amount = 10000000
                 cloned_resource.amount = 10000000
             end
+            resource = nil
+            cloned_resource = nil
         end
     end
 end
@@ -267,7 +273,9 @@ end
 function clone_entity_pool(player, entity_pool, tpx, tpy, current_paste, times_to_paste, bounding_box, flag_complete)
     local create_entity_values = {}
     local surface = player.surface
-    clean_paste_area(player, tpx, tpy, current_paste, bounding_box)
+    if not (current_paste > times_to_paste) then
+        clean_paste_area(player, tpx, tpy, current_paste, bounding_box)
+    end
     ensure_entity_pool_valid(player, entity_pool)
     for _,ent in pairs(entity_pool) do
         if not has_value(ent.type, low_priority_entities) then

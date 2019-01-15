@@ -3,6 +3,9 @@ entities_to_not_clone = {"player", "entity-ghost", "tile-ghost"}
 
 TICKS_PER_PASTE = 2
 
+--[[These types have defines.inventory.chest return their fuel slot, which mean we double copy their fuel]]
+HAS_DEFINES_INVENTORY_CHEST_BUT_SHOULDNT_TYPES = {"locomotive", "car"}
+
 --[[For 0.16.x setting a combinator inactive can cause the game to desync]]
 desync_if_entities_are_inactive_entities = {"decider-combinator", "arithmetic-combinator"}
 

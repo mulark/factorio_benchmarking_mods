@@ -78,9 +78,7 @@ function virtual_job_create(left, top, right, bottom, desired_times_to_paste)
     player.surface = game.surfaces[1]
     player.force = game.forces["player"]
     player.print = function(data)
-        for _, p in pairs(game.players) do
-            p.print("virtual job message: " .. data)
-        end
+        game.print(data)
     end
     job.player = player
     job.bounding_box = construct_bounding_box(left, top, right, bottom)
