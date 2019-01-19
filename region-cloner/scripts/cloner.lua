@@ -244,6 +244,126 @@ local function ensure_entity_pool_valid(player, pool)
     end
 end
 
+local function check_for_positions_which_could_contain_both_straight_and_curved_rail_then_return_the_entity_to_remove(surface, ent, x_magnitude, y_magnitude)
+    local flag_straight, flag_curved = false, false
+    local possible_entity_to_destroy = {}
+    for _, chk in pairs(surface.find_entities_filtered{name={"straight-rail", "curved-rail"}, force="player", position={ent.x + x_magnitude, ent.y + y_magnitude}}) do
+        if (chk.name == "straight-rail") then
+            flag_straight = true
+            possible_entity_to_destroy = chk
+        end
+        if (chk.name == "curved-rail") then
+            flag_curved = true
+        end
+    end
+    if (flag_straight and flag_curved) then
+        return possible_entity_to_destroy
+    else
+        flag_straight, flag_curved = false, false
+    end
+    return check_for_positions_which_could_contain_both_straight_and_curved_rail_then_return_the_entity_to_remove(surface, ent, -1 * x_magnitude, -1 * y_magnitude)
+end
+
+local function make_the_rail_system_condusive_to_pasting_our_rolling_stock(player, surface, ent, x_offset, y_offset)
+    local entity_to_recreate = {}
+    if not has_value(ent.orientation, {0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875}) then
+        --[[If we are on a curve]]
+        --[[Find a straight rail at the offset]]
+        local possible_straight_rail_piece = surface.find_entity("straight-rail", {x_offset, y_offset})
+        if (possible_straight_rail_piece) then
+            if has_value(possible_straight_rail_piece.direction, {1, 3, 5, 7}) then
+                possible_straight_rail_piece = nil
+            end
+        end
+        if not (possible_straight_rail_piece) then
+            --[[It is possible to be inbetween two straight rail pieces and fail to find any]]
+            possible_straight_rail_piece = surface.find_entity("straight-rail", {round_to_rail_grid_midpoint(x_offset), round_to_rail_grid_midpoint(y_offset)})
+            if (possible_straight_rail_piece) then
+                if has_value(possible_straight_rail_piece.direction, {1, 3, 5, 7}) then
+                    possible_straight_rail_piece = nil
+                end
+            end
+        end
+        if (possible_straight_rail_piece) then
+            local possible_curved_rail = surface.find_entity("curved-rail", possible_straight_rail_piece.position)
+            --[[If we find the straight rail. try to find a curved rail at straight rail's position]]
+            if (possible_curved_rail) then
+                --[[If we find the curved rail, then temporarily delete the straight rail, and then copy the rolling stock]]
+                entity_to_recreate.position = possible_straight_rail_piece.position
+                entity_to_recreate.direction = possible_straight_rail_piece.direction
+                possible_straight_rail_piece.destroy()
+                return entity_to_recreate
+            else
+                --[[If we could not find the curved rail at the same position as our straight rail, that means we are just barely on the curved rail, or we are on a diagonal section]]
+                if has_value(possible_straight_rail_piece.direction, {1, 3, 5, 7}) then
+                    --[[We are on a diagonal bit, don't do anything here (TODO maybe change this?)]]
+                    --[[We would be mostly on diagonal rails, but not fully since if we were fully we never would have made it here. A tiny sliver would reside on a curved rail.]]
+                else
+                    --[[determine if we are close to horizontal or vertical]]
+                    local approximate_rotation_point = round(ent.orientation * 4) % 4
+                    local x, y = 0, 0
+                    if has_value(approximate_rotation_point, {0, 2}) then
+                        y = 2
+                        --[[We are approximately vertical]]
+                    end
+                    if has_value(approximate_rotation_point, {1, 3}) then
+                        --[[We are approximately horizontal]]
+                        x = 2
+                    end
+                    local get_rid_of_this = check_for_positions_which_could_contain_both_straight_and_curved_rail_then_return_the_entity_to_remove(surface, possible_straight_rail_piece, x, y)
+                    if (get_rid_of_this) then
+                        entity_to_recreate.position = get_rid_of_this.position
+                        entity_to_recreate.direction = get_rid_of_this.direction
+                        get_rid_of_this.destroy()
+                        return entity_to_recreate
+                    else
+                        --[[After all that we still failed? I give up]]
+                    end
+                end
+            end
+        else
+            --[[If we did not find a straight rail then we are fully on the curved track. Let's try to do the offset method.]]
+            local curve_track = surface.find_entity("curved-rail", ent.position)
+            if (curve_track) then
+                local x_offset_bonus, y_offset_bonus = calculate_offsets(curve_track)
+                x_offset = x_offset + x_offset_bonus
+                y_offset = y_offset + y_offset_bonus
+            end
+        end
+    end
+end
+
+local function find_additional_entities_which_may_break_stuff_and_insert_them_into_a_table(surface, entity_to_recreate)
+    local entity_pool = {}
+    table.insert(entity_pool, entity_to_recreate)
+    local search_x, search_y = 0, 0
+    if (entity_to_recreate.direction == 0) then
+        search_y = 2
+    end
+    if (entity_to_recreate.direction == 2) then
+        search_x = 2
+    end
+    for _, ent in pairs(surface.find_entities_filtered{name="straight-rail", position = {entity_to_recreate.position.x + search_x, entity_to_recreate.position.y + search_y}}) do
+        if next(surface.find_entities_filtered{name="curved-rail", position=ent.position}) then
+            local construct = {}
+            construct.position = ent.position
+            construct.direction = ent.direction
+            table.insert(entity_pool, construct)
+            ent.destroy()
+        end
+    end
+    for _, ent in pairs(surface.find_entities_filtered{name="straight-rail", position = {entity_to_recreate.position.x - search_x, entity_to_recreate.position.y - search_y}}) do
+        if next(surface.find_entities_filtered{name="curved-rail", position=ent.position}) then
+            local construct = {}
+            construct.position = ent.position
+            construct.direction = ent.direction
+            table.insert(entity_pool, construct)
+            ent.destroy()
+        end
+    end
+    return entity_pool
+end
+
 local function convert_bounding_box_to_current_paste_region(tpx, tpy, current_paste, bounding_box)
     local modified_box = {}
     local left_top = {}
@@ -267,6 +387,23 @@ local function clean_paste_area(player, tpx, tpy, current_paste, bounding_box)
     local new_box = convert_bounding_box_to_current_paste_region(tpx, tpy, current_paste, bounding_box)
     for _, ent in pairs(player.surface.find_entities_filtered{area=new_box}) do
         ent.destroy()
+    end
+end
+
+function calculate_offsets(ent)
+    local offset_factor = 0.99
+    local compare = ent.direction
+    if has_value(compare, {0, 5}) then
+        return -1 * offset_factor, 0
+    end
+    if has_value(compare, {1, 4}) then
+        return offset_factor, 0
+    end
+    if has_value(compare, {2, 7}) then
+        return 0, -1 * offset_factor
+    end
+    if has_value(compare, {3, 6}) then
+        return 0, offset_factor
     end
 end
 
@@ -301,13 +438,21 @@ function clone_entity_pool(player, entity_pool, tpx, tpy, current_paste, times_t
             end
         end
         if has_value(ent.type, low_priority_entities) then
-            local x_offset = ent.position.x + tpx * (current_paste - 1)
-            local y_offset = ent.position.y + tpy * (current_paste - 1)
-            create_entity_values = {name = ent.name, position={x_offset, y_offset}, direction=ent.direction, force="player"}
-            if (x_offset == ent.position.x and y_offset == ent.position.y) then
-                --[[Do nothing]]
-            else
-                --[[If we're on the first paste then don't run any low priority entities]]
+            if not (current_paste == 1) then
+                local x_offset = ent.position.x + tpx * (current_paste - 1)
+                local y_offset = ent.position.y + tpy * (current_paste - 1)
+                local entity_to_recreate = {}
+                local entity_pool_to_recreate = {}
+
+                if has_value(ent.type, {"locomotive", "cargo-wagon", "fluid-wagon"}) then
+                    entity_to_recreate = make_the_rail_system_condusive_to_pasting_our_rolling_stock(player, surface, ent, x_offset, y_offset)
+                    if (entity_to_recreate) then
+                        entity_pool_to_recreate = find_additional_entities_which_may_break_stuff_and_insert_them_into_a_table(surface, entity_to_recreate)
+                    end
+                end
+
+                create_entity_values = {name = ent.name, position={x_offset, y_offset}, direction=ent.direction, force="player"}
+
                 local newent = surface.create_entity(create_entity_values)
                 if not (newent) then
                     newent = surface.find_entity(ent.name, {x_offset, y_offset})
@@ -317,6 +462,10 @@ function clone_entity_pool(player, entity_pool, tpx, tpy, current_paste, times_t
                 else
                     copy_entity(ent, newent)
                     newent = nil
+                end
+                for _, virtual_ent in pairs(entity_pool_to_recreate) do
+                    --[[These "entitites" only have position and direction]]
+                    surface.create_entity({name="straight-rail", position=virtual_ent.position, force="player", direction=virtual_ent.direction})
                 end
             end
         end

@@ -35,3 +35,16 @@ function construct_bounding_box(left, top, right, bottom)
     box["right_bottom"] = right_bottom
     return box
 end
+
+function round(x)
+    return x + 0.5 - (x + 0.5) % 1
+end
+
+function round_to_rail_grid_midpoint(x)
+    local foo = math.floor(x)
+    if (foo % 2 ~= 0) then
+        return foo
+    else
+        return foo + 1
+    end
+end
