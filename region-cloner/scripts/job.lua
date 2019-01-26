@@ -1,6 +1,8 @@
 require("scripts.common")
 --[[player, entity_pool, tiles_to_paste_x, tiles_to_paste_y, current_paste, times_to_paste, bounding_box]]
 
+global.job_queue = {}
+
 local function get_region_bounding_box(player)
     local coord_table = mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_coordinate-table"]
     local left = tonumber(coord_table["left_top_x"].text)

@@ -241,7 +241,7 @@ local function ensure_entity_pool_valid(player, pool)
     end
 end
 
-local function check_for_positions_which_could_contain_both_straight_and_curved_rail_then_return_the_entity_to_remove(surface, ent, x_magnitude, y_magnitude)
+local function check_for_positions_which_could_contain_both_straight_and_curved_rail_then_return_the_entity_to_remove(surface, ent, x_magnitude, y_magnitude, times_called)
     local flag_straight, flag_curved = false, false
     local possible_entity_to_destroy = {}
     for _, chk in pairs(surface.find_entities_filtered{name={"straight-rail", "curved-rail"}, force="player", position={ent.position.x + x_magnitude, ent.position.y + y_magnitude}}) do
@@ -258,7 +258,11 @@ local function check_for_positions_which_could_contain_both_straight_and_curved_
     else
         flag_straight, flag_curved = false, false
     end
-    return check_for_positions_which_could_contain_both_straight_and_curved_rail_then_return_the_entity_to_remove(surface, ent, -1 * x_magnitude, -1 * y_magnitude)
+    if (times_called > 2) then
+        check_for_positions_which_could_contain_both_straight_and_curved_rail_then_return_the_entity_to_remove(surface, ent, -1 * x_magnitude, -1 * y_magnitude, times_called + 1)
+    else
+        return nil
+    end
 end
 
 local function make_the_rail_system_condusive_to_pasting_our_rolling_stock(player, surface, ent, x_offset, y_offset)
@@ -285,6 +289,7 @@ local function make_the_rail_system_condusive_to_pasting_our_rolling_stock(playe
             local possible_curved_rail = surface.find_entity("curved-rail", possible_straight_rail_piece.position)
             --[[If we find the straight rail. try to find a curved rail at straight rail's position]]
             if (possible_curved_rail) then
+                --[[Breaks if we're on a S curve but over the curved rail piece we're not on!]]
                 --[[If we find the curved rail, then temporarily delete the straight rail, and then copy the rolling stock]]
                 entity_to_recreate.position = possible_straight_rail_piece.position
                 entity_to_recreate.direction = possible_straight_rail_piece.direction
@@ -307,7 +312,7 @@ local function make_the_rail_system_condusive_to_pasting_our_rolling_stock(playe
                         --[[We are approximately horizontal]]
                         x = 2
                     end
-                    local get_rid_of_this = check_for_positions_which_could_contain_both_straight_and_curved_rail_then_return_the_entity_to_remove(surface, possible_straight_rail_piece, x, y)
+                    local get_rid_of_this = check_for_positions_which_could_contain_both_straight_and_curved_rail_then_return_the_entity_to_remove(surface, possible_straight_rail_piece, x, y, 1)
                     if (get_rid_of_this) then
                         entity_to_recreate.position = get_rid_of_this.position
                         entity_to_recreate.direction = get_rid_of_this.direction
@@ -382,7 +387,8 @@ end
 
 local function clean_paste_area(player, tpx, tpy, current_paste, bounding_box)
     local new_box = convert_bounding_box_to_current_paste_region(tpx, tpy, current_paste, bounding_box)
-    for _, ent in pairs(player.surface.find_entities_filtered{area=new_box}) do
+    for _, ent in pairs(player.surface.find_entities_filtered{area=new_box, name="player", invert=true}) do
+        --[[Don't delete the player's character]]
         ent.destroy()
     end
 end

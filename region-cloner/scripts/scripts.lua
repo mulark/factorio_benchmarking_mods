@@ -2,8 +2,6 @@ require("scripts.cloner")
 require("scripts.common")
 require("scripts.job")
 
-job_queue = {}
-
 function decode_direction_for_unusual_collision_box(direction, type)
     local offset_left, offset_top, offset_right, offset_bottom = 4, 4, 4, 4
     if type == "curved-rail" then
@@ -175,7 +173,7 @@ local function clone_entites_by_job(job)
         else
             job.player.print("You had valid copy paste settings but there were no entities to clone!")
             job.flag_complete = true
-            update_player_progress_bars(job_queue)
+            update_player_progress_bars(global.job_queue)
         end
     end
 end
@@ -229,13 +227,7 @@ function update_player_progress_bars(job_queue)
     end
 end
 
-
-function issue_copy_paste(player)
-    validate_player_copy_paste_settings(player)
-    local my_job = job_create(player)
-    job_queue[player.name] = my_job
-    --[[local job_from_another_player = virtual_job_create(32, -32, 64, 0, 100)
-    job_queue[job_from_another_player.player.name] = job_from_another_player]]
+function do_on_tick()
     script.on_event(defines.events.on_tick, function(event)
         if (game.tick % TICKS_PER_PASTE) then
             run_on_tick()
@@ -243,8 +235,18 @@ function issue_copy_paste(player)
     end)
 end
 
+function issue_copy_paste(player)
+    validate_player_copy_paste_settings(player)
+    local my_job = job_create(player)
+    global.job_queue[player.name] = my_job
+    --[[local job_from_another_player = virtual_job_create(32, -32, 64, 0, 100)
+    job_queue[job_from_another_player.player.name] = job_from_another_player]]
+    global.do_on_tick = true
+    do_on_tick()
+end
+
 function run_on_tick()
-    for job_key, job in pairs(job_queue) do
+    for job_key, job in pairs(global.job_queue) do
         if (job.flag_complete) then
             --[[If this job is finished then set the entity pool active and unregister the job]]
             if (job.entity_pool) then
@@ -255,14 +257,15 @@ function run_on_tick()
                 end
             end
             job = nil
-            job_queue[job_key] = nil
+            global.job_queue[job_key] = nil
         else
             clone_entites_by_job(job)
         end
     end
-    update_player_progress_bars(job_queue)
-    if not next(job_queue) then
+    update_player_progress_bars(global.job_queue)
+    if not next(global.job_queue) then
         --[[If the job_queue has no jobs then unregister the on_tick event handler]]
+        global.do_on_tick = false
         script.on_event(defines.events.on_tick, nil)
     end
 end
