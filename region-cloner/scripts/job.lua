@@ -1,4 +1,4 @@
-require("common")
+require("scripts.common")
 --[[player, entity_pool, tiles_to_paste_x, tiles_to_paste_y, current_paste, times_to_paste, bounding_box]]
 
 local function get_region_bounding_box(player)
