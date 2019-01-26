@@ -48,3 +48,11 @@ function round_to_rail_grid_midpoint(x)
         return foo + 1
     end
 end
+
+function swap_to_fix_pairs(negative_most, positive_most)
+    --[[You will not find any entites if your left top is to the right of your right bottom. Same for top/bottom.]]
+    if (negative_most < positive_most) then
+        return negative_most, positive_most
+    end
+    return positive_most, negative_most
+end

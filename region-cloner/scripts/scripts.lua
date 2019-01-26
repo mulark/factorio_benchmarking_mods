@@ -254,6 +254,7 @@ function run_on_tick()
                     end
                 end
             end
+            job = nil
             job_queue[job_key] = nil
         else
             clone_entites_by_job(job)

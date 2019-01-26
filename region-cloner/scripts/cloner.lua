@@ -11,16 +11,6 @@ function correct_for_rail_grid(tile_paste_length)
     return tile_paste_length
 end
 
-function swap_to_fix_pairs(negative_most, positive_most)
-    --[[You will not find any entites if your left top is to the right of your right bottom. Same for top/bottom.]]
-    if (negative_most > positive_most) then
-        local temp = negative_most
-        negative_most = positive_most
-        positive_most = temp
-    end
-    return negative_most, positive_most
-end
-
 local function clean_paste_area (surface, left, top, right, bottom)
     local second_try_destroy_entities = {}
     for key, ent in pairs(surface.find_entities_filtered({area={{left, top},{right, bottom}}})) do
@@ -37,17 +27,20 @@ local function clean_paste_area (surface, left, top, right, bottom)
             ent.destroy()
         end
     end
+    second_try_destroy_entities = nil
 end
-function copy_entity (original_entity, cloned_entity)
+
+function copy_entity (original_entity, cloned_entity, surface)
     copy_properties(original_entity, cloned_entity)
     copy_inventories_and_fluid(original_entity, cloned_entity)
     copy_progress_bars(original_entity, cloned_entity)
-    copy_resources(original_entity, cloned_entity)
-    copy_circuit_connections(original_entity, cloned_entity)
+    copy_resources(original_entity, cloned_entity, surface)
+    copy_circuit_connections(original_entity, cloned_entity, surface)
     copy_train(original_entity, cloned_entity)
     --[[updating connections probably doesn't do anything, since anything that could be affected by a beacon already exists by the time beacons are cloned--]]
+    --[[It also updates miners so they see any newly placed ore underneath them, Ill leave it since it probably wont break anything]]
     cloned_entity.update_connections()
-    copy_transport_line_contents(original_entity, cloned_entity)
+    copy_transport_line_contents(original_entity, cloned_entity, surface)
 end
 
 function copy_properties (original_entity, cloned_entity)
@@ -62,6 +55,7 @@ function copy_properties (original_entity, cloned_entity)
     end
 end
 
+--[[TODO actually pass the inventories which ought to be copied]]
 local function internal_inventory_copy(original_entity, cloned_entity, INV_DEFINE)
     if (original_entity.get_inventory(INV_DEFINE)) then
         local working_inventory = original_entity.get_inventory(INV_DEFINE)
@@ -70,6 +64,7 @@ local function internal_inventory_copy(original_entity, cloned_entity, INV_DEFIN
                 cloned_entity.get_inventory(INV_DEFINE).insert(working_inventory[k])
             end
         end
+        working_inventory = nil
     end
 end
 
@@ -121,8 +116,7 @@ function copy_progress_bars(original_entity, cloned_entity)
     end
 end
 
-function copy_resources (original_entity, cloned_entity)
-    local surface = original_entity.surface
+function copy_resources (original_entity, cloned_entity, surface)
     if (original_entity.type == "mining-drill") then
         if (original_entity.mining_target) then
             local resource = original_entity.mining_target
@@ -143,17 +137,20 @@ function copy_resources (original_entity, cloned_entity)
     end
 end
 
-function copy_circuit_connections (original_entity, cloned_entity)
-    local surface = original_entity.surface
+function copy_circuit_connections (original_entity, cloned_entity, surface)
     if (original_entity.circuit_connection_definitions) then
         for x=1, #original_entity.circuit_connection_definitions do
             local targetent = original_entity.circuit_connection_definitions[x].target_entity
             local offset_x = (original_entity.position.x - targetent.position.x)
             local offset_y = (original_entity.position.y - targetent.position.y)
-            if (surface.find_entity(targetent.name, {(cloned_entity.position.x - offset_x), (cloned_entity.position.y - offset_y)})) then
-                local targetnewent = surface.find_entity(targetent.name, {(cloned_entity.position.x - offset_x), (cloned_entity.position.y - offset_y)})
+            local targetnewent = surface.find_entity(targetent.name, {(cloned_entity.position.x - offset_x), (cloned_entity.position.y - offset_y)})
+            if (targetnewent) then
                 cloned_entity.connect_neighbour({target_entity = targetnewent, wire=original_entity.circuit_connection_definitions[x].wire, source_circuit_id=original_entity.circuit_connection_definitions[x].source_circuit_id, target_circuit_id=original_entity.circuit_connection_definitions[x].target_circuit_id})
             end
+            targetent = nil
+            offset_x = nil
+            offset_y = nil
+            targetnewent = nil
         end
     end
 end
@@ -175,7 +172,7 @@ function copy_train (original_entity, cloned_entity)
     end
 end
 
-function copy_transport_line_contents (original_entity, cloned_entity)
+function copy_transport_line_contents (original_entity, cloned_entity, surface)
     local transport_lines_present = 0
     if (original_entity.type == "splitter") then
         transport_lines_present = 8
@@ -188,7 +185,7 @@ function copy_transport_line_contents (original_entity, cloned_entity)
                     local offset_x = original_entity.neighbours.position.x - original_entity.position.x
                     local offset_y = original_entity.neighbours.position.y - original_entity.position.y
                     if not (cloned_entity.neighbours) then
-                        cloned_entity.surface.create_entity({name = cloned_entity.name, position = {cloned_entity.position.x + offset_x, cloned_entity.position.y + offset_y}, force = cloned_entity.force, direction = cloned_entity.direction, type = "output"})
+                        surface.create_entity({name = cloned_entity.name, position = {cloned_entity.position.x + offset_x, cloned_entity.position.y + offset_y}, force = cloned_entity.force, direction = cloned_entity.direction, type = "output"})
                     end
                 end
             end
@@ -247,7 +244,7 @@ end
 local function check_for_positions_which_could_contain_both_straight_and_curved_rail_then_return_the_entity_to_remove(surface, ent, x_magnitude, y_magnitude)
     local flag_straight, flag_curved = false, false
     local possible_entity_to_destroy = {}
-    for _, chk in pairs(surface.find_entities_filtered{name={"straight-rail", "curved-rail"}, force="player", position={ent.x + x_magnitude, ent.y + y_magnitude}}) do
+    for _, chk in pairs(surface.find_entities_filtered{name={"straight-rail", "curved-rail"}, force="player", position={ent.position.x + x_magnitude, ent.position.y + y_magnitude}}) do
         if (chk.name == "straight-rail") then
             flag_straight = true
             possible_entity_to_destroy = chk
@@ -432,7 +429,7 @@ function clone_entity_pool(player, entity_pool, tpx, tpy, current_paste, times_t
                 if not (newent) then
                     player.print("Something went horribly wrong, we tried to copy a " .. ent.name .. " but failed!")
                 else
-                    copy_entity(ent, newent)
+                    copy_entity(ent, newent, surface)
                     newent = nil
                 end
             end
@@ -441,13 +438,14 @@ function clone_entity_pool(player, entity_pool, tpx, tpy, current_paste, times_t
             if not (current_paste == 1) then
                 local x_offset = ent.position.x + tpx * (current_paste - 1)
                 local y_offset = ent.position.y + tpy * (current_paste - 1)
-                local entity_to_recreate = {}
-                local entity_pool_to_recreate = {}
-
                 if has_value(ent.type, {"locomotive", "cargo-wagon", "fluid-wagon"}) then
-                    entity_to_recreate = make_the_rail_system_condusive_to_pasting_our_rolling_stock(player, surface, ent, x_offset, y_offset)
-                    if (entity_to_recreate) then
-                        entity_pool_to_recreate = find_additional_entities_which_may_break_stuff_and_insert_them_into_a_table(surface, entity_to_recreate)
+                    if not has_value(ent.orientation, {0, 0.25, 0.5, 0.75}) then
+                        local entity_to_recreate = {}
+                        local entity_pool_to_recreate = {}
+                        entity_to_recreate = make_the_rail_system_condusive_to_pasting_our_rolling_stock(player, surface, ent, x_offset, y_offset)
+                        if (entity_to_recreate) then
+                            entity_pool_to_recreate = find_additional_entities_which_may_break_stuff_and_insert_them_into_a_table(surface, entity_to_recreate)
+                        end
                     end
                 end
 
@@ -460,12 +458,16 @@ function clone_entity_pool(player, entity_pool, tpx, tpy, current_paste, times_t
                 if not (newent) then
                     player.print("Something went horribly wrong, we tried to copy a " .. ent.name .. " but failed!")
                 else
-                    copy_entity(ent, newent)
+                    copy_entity(ent, newent, surface)
                     newent = nil
                 end
-                for _, virtual_ent in pairs(entity_pool_to_recreate) do
-                    --[[These "entitites" only have position and direction]]
-                    surface.create_entity({name="straight-rail", position=virtual_ent.position, force="player", direction=virtual_ent.direction})
+                if (entity_pool_to_recreate) then
+                    for _, virtual_ent in pairs(entity_pool_to_recreate) do
+                        --[[These "entitites" only have position and direction]]
+                        surface.create_entity({name="straight-rail", position=virtual_ent.position, force="player",     direction=virtual_ent.direction})
+                    end
+                    entity_to_recreate = nil
+                    entity_pool_to_recreate = nil
                 end
             end
         end

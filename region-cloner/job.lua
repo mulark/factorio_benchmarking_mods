@@ -91,6 +91,7 @@ function virtual_job_create(left, top, right, bottom, desired_times_to_paste)
     job.current_paste = 1
     job.flag_complete = false
     job.cancel_button_name = "region-cloner_" .. job.player.name .. "_job" .. "_cancel_button"
+    job.clean_paste_area_flag = true
     return job
 end
 
@@ -107,6 +108,8 @@ function job_create(player)
     job.current_paste = 1
     job.flag_complete = false
     job.cancel_button_name = "region-cloner_" .. job.player.name .. "_job" .. "_cancel_button"
+    --[[Future]]
+    job.clean_paste_area_flag = true
     return job
 end
 
