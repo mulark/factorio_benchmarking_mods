@@ -1,4 +1,4 @@
-require("common")
+require("scripts.common")
 
 function correct_for_rail_grid(tile_paste_length)
     if ((tile_paste_length % 2) ~= 0) then
@@ -436,12 +436,12 @@ function clone_entity_pool(player, entity_pool, tpx, tpy, current_paste, times_t
         end
         if has_value(ent.type, low_priority_entities) then
             if not (current_paste == 1) then
+                local entity_pool_to_recreate = {}
                 local x_offset = ent.position.x + tpx * (current_paste - 1)
                 local y_offset = ent.position.y + tpy * (current_paste - 1)
                 if has_value(ent.type, {"locomotive", "cargo-wagon", "fluid-wagon"}) then
                     if not has_value(ent.orientation, {0, 0.25, 0.5, 0.75}) then
                         local entity_to_recreate = {}
-                        local entity_pool_to_recreate = {}
                         entity_to_recreate = make_the_rail_system_condusive_to_pasting_our_rolling_stock(player, surface, ent, x_offset, y_offset)
                         if (entity_to_recreate) then
                             entity_pool_to_recreate = find_additional_entities_which_may_break_stuff_and_insert_them_into_a_table(surface, entity_to_recreate)
@@ -464,7 +464,7 @@ function clone_entity_pool(player, entity_pool, tpx, tpy, current_paste, times_t
                 if (entity_pool_to_recreate) then
                     for _, virtual_ent in pairs(entity_pool_to_recreate) do
                         --[[These "entitites" only have position and direction]]
-                        surface.create_entity({name="straight-rail", position=virtual_ent.position, force="player",     direction=virtual_ent.direction})
+                        surface.create_entity({name="straight-rail", position={virtual_ent.position.x, virtual_ent.position.y}, force="player", direction=virtual_ent.direction})
                     end
                     entity_to_recreate = nil
                     entity_pool_to_recreate = nil

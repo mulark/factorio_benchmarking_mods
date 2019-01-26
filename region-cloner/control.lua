@@ -1,6 +1,6 @@
 local mod_gui = require("mod-gui")
 local util = require("util")
-local gui = require("gui")
+local gui = require("scripts.gui")
 require("scripts.scripts")
 
 script.on_configuration_changed(function()

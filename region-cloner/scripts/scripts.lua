@@ -1,6 +1,6 @@
 require("scripts.cloner")
-require("common")
-require("job")
+require("scripts.common")
+require("scripts.job")
 
 job_queue = {}
 
