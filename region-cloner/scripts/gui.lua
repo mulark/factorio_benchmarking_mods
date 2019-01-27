@@ -3,6 +3,7 @@ local gui = {}
 gui.create_gui = function (player)
     gui.clear_gui(player)
     local mod_button = mod_gui.get_button_flow(player).add{type="sprite-button", name="region-cloner_main-button", sprite="achievement/lazy-bastard", tooltip="Region Cloner"}
+    mod_button.style = mod_gui.button_style
     local mod_frame = mod_gui.get_frame_flow(player).add{type="frame", name="region-cloner_control-window", caption="Region Cloner", direction="vertical"}
     mod_frame.style.visible = false
     local coord_gui_table = mod_frame.add{type="table", column_count=3, name="region-cloner_coordinate-table"}
