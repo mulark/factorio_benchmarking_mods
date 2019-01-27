@@ -1,5 +1,5 @@
 --[[Ghosts will break script as it exists currently. Copying the player is annoying and only serves to clutter the map.]]
-entities_to_not_clone = {"player", "entity-ghost", "tile-ghost"}
+ENTITIES_TO_NOT_CLONE = {"player", "entity-ghost", "tile-ghost"}
 
 TICKS_PER_PASTE = 2
 
@@ -7,12 +7,16 @@ TICKS_PER_PASTE = 2
 HAS_DEFINES_INVENTORY_CHEST_BUT_SHOULDNT_TYPES = {"locomotive", "car"}
 
 --[[For 0.16.x setting a combinator inactive can cause the game to desync]]
-desync_if_entities_are_inactive_entities = {"decider-combinator", "arithmetic-combinator"}
+DESYNC_IF_ENTITIES_ARE_INACTIVE_ENTITIES = {"decider-combinator", "arithmetic-combinator"}
 
 --[[Low priority entities depend on other entities existing in the world first]]
 --[[Beacons are here because wakeup lists for inserters won't tie to a car in certain designs, if the beacons exist. After the wakeup list is determined beacons can be placed.]]
---[[Trains require rails to be placed first, robots will fly to a different robonetwork if their parent roboport exists after they do.]]
-low_priority_entities = {"beacon", "locomotive", "cargo-wagon", "logistic-robot", "construction-robot", "fluid-wagon"}
+--[[Robots will fly to a different robonetwork if their parent roboport exists after they do.]]
+LOW_PRIORITY_ENTITIES = {"beacon", "logistic-robot", "construction-robot"}
+
+ROLLING_STOCK_TYPES = {"locomotive", "cargo-wagon", "fluid-wagon", "artillery-wagon"}
+
+debug_logging = false
 
 function has_value (val, tab)
     for index, value in ipairs(tab) do

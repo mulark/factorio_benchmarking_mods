@@ -30,11 +30,11 @@ local function clean_entity_pool (entity_pool, tiles_to_paste_x, tiles_to_paste_
         if has_value(ent.type, {"straight-rail", "curved-rail"}) then
             flag_rail_found = true
         end
-        if has_value(ent.type, entities_to_not_clone) then
+        if has_value(ent.type, ENTITIES_TO_NOT_CLONE) then
             entity_pool[key] = nil
         else
             if (ent.valid) then
-                if not has_value(ent.type, desync_if_entities_are_inactive_entities) then
+                if not has_value(ent.type, DESYNC_IF_ENTITIES_ARE_INACTIVE_ENTITIES) then
                     ent.active = false
                 end
             end
@@ -98,6 +98,9 @@ function virtual_job_create(left, top, right, bottom, desired_times_to_paste)
 end
 
 function job_create(player)
+    if (debug_logging) then
+        log("starting to create a job")
+    end
     local job = {}
     job.player = player
     job.bounding_box = get_region_bounding_box(player)
@@ -112,6 +115,9 @@ function job_create(player)
     job.cancel_button_name = "region-cloner_" .. job.player.name .. "_job" .. "_cancel_button"
     --[[Future]]
     job.clean_paste_area_flag = true
+    if (debug_logging) then
+        log("finished job creation")
+    end
     return job
 end
 

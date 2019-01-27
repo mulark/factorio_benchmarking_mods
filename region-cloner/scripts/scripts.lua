@@ -57,7 +57,7 @@ function restrict_selection_area_to_entities(left, top, right, bottom, player)
     left, right = swap_to_fix_pairs(left, right)
     top, bottom = swap_to_fix_pairs(top, bottom)
     for _, ent in pairs(player.surface.find_entities_filtered{area={{left, top},{right,bottom}}, force="player"}) do
-        if not has_value(ent.type, entities_to_not_clone) then
+        if not has_value(ent.type, ENTITIES_TO_NOT_CLONE) then
             local unusual_collision_box_factor_left, unusual_collision_box_factor_top, unusual_collision_box_factor_right, unusual_collision_box_factor_bottom = 0, 0, 0, 0
             local ltx, lty, rbx, rby = convert_entity_collision_box_to_rotated_aware(ent)
             if has_value(ent.type, problematic_collision_box_entity_types) then
@@ -163,7 +163,7 @@ local function clone_entites_by_job(job)
             if (job.current_paste == 1) then
                 for _, ent in pairs(job.entity_pool) do
                     if (ent.valid) then
-                        if not has_value(ent.type, desync_if_entities_are_inactive_entities) then
+                        if not has_value(ent.type, DESYNC_IF_ENTITIES_ARE_INACTIVE_ENTITIES) then
                             ent.active = false
                         end
                     end
@@ -236,8 +236,17 @@ function do_on_tick()
 end
 
 function issue_copy_paste(player)
+    if (debug_logging) then
+        log("entering issue_copy_paste")
+    end
     validate_player_copy_paste_settings(player)
+    if (debug_logging) then
+        log("validate_player_copy_paste_settings")
+    end
     local my_job = job_create(player)
+    if (debug_logging) then
+        log("created player job")
+    end
     global.job_queue[player.name] = my_job
     --[[local job_from_another_player = virtual_job_create(32, -32, 64, 0, 100)
     job_queue[job_from_another_player.player.name] = job_from_another_player]]
@@ -246,6 +255,9 @@ function issue_copy_paste(player)
 end
 
 function run_on_tick()
+    if (debug_logging) then
+        log("started on tick behavior")
+    end
     for job_key, job in pairs(global.job_queue) do
         if (job.flag_complete) then
             --[[If this job is finished then set the entity pool active and unregister the job]]
