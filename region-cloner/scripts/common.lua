@@ -1,3 +1,5 @@
+GUI_ELEMENT_PREFIX = "region-cloner_"
+
 --[[Ghosts will break script as it exists currently. Copying the player is annoying and only serves to clutter the map.]]
 ENTITIES_TO_NOT_CLONE = {"player", "entity-ghost", "tile-ghost"}
 

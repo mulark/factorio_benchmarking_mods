@@ -11,25 +11,6 @@ function correct_for_rail_grid(tile_paste_length)
     return tile_paste_length
 end
 
-local function clean_paste_area (surface, left, top, right, bottom)
-    local second_try_destroy_entities = {}
-    for key, ent in pairs(surface.find_entities_filtered({area={{left, top},{right, bottom}}})) do
-        if (ent.valid) then
-            if (ent.type ~= "player") then
-                ent.clear_items_inside()
-                if not (ent.can_be_destroyed()) then
-                    table.insert(second_try_destroy_entities, ent)
-                end
-                ent.destroy()
-            end
-        end
-        for key, ent in pairs(second_try_destroy_entities) do
-            ent.destroy()
-        end
-    end
-    second_try_destroy_entities = nil
-end
-
 function copy_entity (original_entity, cloned_entity, surface)
     copy_properties(original_entity, cloned_entity)
     copy_inventories_and_fluid(original_entity, cloned_entity)
@@ -37,8 +18,8 @@ function copy_entity (original_entity, cloned_entity, surface)
     copy_resources(original_entity, cloned_entity, surface)
     copy_circuit_connections(original_entity, cloned_entity, surface)
     copy_train(original_entity, cloned_entity)
-    --[[updating connections probably doesn't do anything, since anything that could be affected by a beacon already exists by the time beacons are cloned--]]
-    --[[It also updates miners so they see any newly placed ore underneath them, Ill leave it since it probably wont break anything]]
+    --[[updating connections probably doesn't do anything, since anything that could be affected by a beacon already exists by the time beacons are cloned]]
+    --[[It also updates miners so they see any newly placed ore underneath them, Ill leave it since it probably wont break anything, except the wrong ore generating under a miner]]
     cloned_entity.update_connections()
     copy_transport_line_contents(original_entity, cloned_entity, surface)
 end
@@ -255,17 +236,36 @@ local function convert_bounding_box_to_current_paste_region(tpx, tpy, current_pa
     return modified_box
 end
 
+local function clean_paste_area(surface, player, tpx, tpy, current_paste, bounding_box, flag_clear_normal, flag_clear_resource)
+    local forces={"enemy", "neutral"}
+    local types={"player"}
+    local second_try_destroy_entities = {}
+    if (flag_clear_normal) then
+        table.insert(forces, "player")
+    end
+    if not (flag_clear_resource) then
+        table.insert(types, "resource")
+    end
+    local new_box = convert_bounding_box_to_current_paste_region(tpx, tpy, current_paste, bounding_box)
+    for _, ent in pairs(surface.find_entities_filtered{area=new_box, force = forces}) do
+        if not has_value(ent.type, types) then
+            ent.clear_items_inside()
+            if not (ent.can_be_destroyed()) then
+                --[[Tracks with a train on them can't be destroyed, save them and try again at the end]]
+                table.insert(second_try_destroy_entities, ent)
+            end
+            ent.destroy()
+        end
+    end
+    for _, ent in pairs(second_try_destroy_entities) do
+        ent.destroy()
+    end
+    second_try_destroy_entities = nil
+end
+
 local function smart_chart(player, tpx, tpy, current_paste, bounding_box)
     local new_box = convert_bounding_box_to_current_paste_region(tpx, tpy, current_paste, bounding_box)
     player.force.chart(player.surface, new_box)
-end
-
-local function clean_paste_area(player, tpx, tpy, current_paste, bounding_box)
-    local new_box = convert_bounding_box_to_current_paste_region(tpx, tpy, current_paste, bounding_box)
-    for _, ent in pairs(player.surface.find_entities_filtered{area=new_box, name="player", invert=true}) do
-        --[[Don't delete the player's character]]
-        ent.destroy()
-    end
 end
 
 local function copy_rails_and_trains(entity_pool, surface, tiles_to_paste_x, tiles_to_paste_y, current_paste)
@@ -294,14 +294,14 @@ local function copy_rails_and_trains(entity_pool, surface, tiles_to_paste_x, til
     end
 end
 
-function clone_entity_pool(player, entity_pool, tpx, tpy, current_paste, times_to_paste, bounding_box, flag_complete)
+function clone_entity_pool(player, entity_pool, tpx, tpy, current_paste, times_to_paste, bounding_box, flag_complete, flag_clear_normal, flag_clear_resource)
     if (debug_logging) then
         log("started clone_entity_pool")
     end
     local create_entity_values = {}
     local surface = player.surface
     if not (current_paste > times_to_paste) then
-        clean_paste_area(player, tpx, tpy, current_paste, bounding_box)
+        clean_paste_area(surface, player, tpx, tpy, current_paste, bounding_box, flag_clear_normal, flag_clear_resource)
     end
     ensure_entity_pool_valid(player, entity_pool)
     --[[The rest of the entity pool rails and trains are copied later

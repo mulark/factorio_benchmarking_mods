@@ -65,12 +65,40 @@ local function decode_direction_to_copy(gui_dropdown_index)
     return tile_paste_direction_x, tile_paste_direction_y
 end
 
-
 local function convert_box_to_offsets(gui_direction_to_copy_index, bounding_box)
     local tpx, tpy = decode_direction_to_copy(gui_direction_to_copy_index)
     tpx = tpx * (bounding_box.right_bottom.x - bounding_box.left_top.x)
     tpy = tpy * (bounding_box.right_bottom.y - bounding_box.left_top.y)
     return tpx,tpy
+end
+
+function register_gui_job(player, job)
+    local job_pane = mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_job-watcher"]
+    local job_name = "region-cloner_" .. job.player.name .. "_job"
+    job_pane.add{type="table", column_count = 3, name=job_name}
+    job_pane[job_name].add{type="label", caption=job.player.name}
+    local pbar = job_pane[job_name].add{type="progressbar", value=job.current_paste / job.times_to_paste, name = job_name .. "_job_progress"}
+    pbar.style.horizontally_stretchable = true
+    local cancelbutton = job_pane[job_name].add{type="button", name = job_name .. "_cancel_button", tooltip="Cancel ongoing copy paste job", caption="x"}
+end
+
+function unregister_gui_job(player, job)
+    local job_pane = mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_job-watcher"]
+    local job_name = "region-cloner_" .. job.player.name .. "_job"
+    if (job_pane[job_name]) then
+        job_pane[job_name].destroy()
+    end
+    if not next(job_pane.children) then
+        job_pane.style.visible = false
+    end
+end
+
+function update_job_gui_progress(player, job)
+    local job_pane = mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_job-watcher"]
+    local job_name = "region-cloner_" .. job.player.name .. "_job"
+    if (job_pane[job_name][job_name .. "_job_progress"]) then
+        job_pane[job_name][job_name .. "_job_progress"].value = job.current_paste / job.times_to_paste
+    end
 end
 
 function virtual_job_create(left, top, right, bottom, desired_times_to_paste)
@@ -93,11 +121,25 @@ function virtual_job_create(left, top, right, bottom, desired_times_to_paste)
     job.current_paste = 1
     job.flag_complete = false
     job.cancel_button_name = "region-cloner_" .. job.player.name .. "_job" .. "_cancel_button"
+    local advanced_settings_gui = frame_flow[GUI_ELEMENT_PREFIX .. "advanced_view_pane"]
+    local tile_paste_override_table = advanced_settings_gui[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_override_table"]
     job.clean_paste_area_flag = true
+    local custom_tile_paste_length_flag = tile_paste_override_table[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_override_checkbox"].state
+    if (custom_tile_paste_length_flag) then
+        job.tiles_to_paste_x = tonumber(tile_paste_override_table[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_x"].text)
+        job.tiles_to_paste_y = tonumber(tile_paste_override_table[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_y"].text)
+    end
+    local advanced_clear_paste_area_table = advanced_settings_gui[GUI_ELEMENT_PREFIX .. "advanced_clear_paste_area_table"]
+    job.clear_normal_entities = advanced_clear_paste_area_table[GUI_ELEMENT_PREFIX .. "clear_normal_entities"].state
+    job.clear_resource_entities = advanced_clear_paste_area_table[GUI_ELEMENT_PREFIX .. "clear_resource_entities"].state
+    if (debug_logging) then
+        log("finished virtual job creation")
+    end
     return job
 end
 
 function job_create(player)
+    local frame_flow = mod_gui.get_frame_flow(player)
     if (debug_logging) then
         log("starting to create a job")
     end
@@ -105,7 +147,7 @@ function job_create(player)
     job.player = player
     job.bounding_box = get_region_bounding_box(player)
     local temp_ent_pool = player.surface.find_entities_filtered{area=job.bounding_box, force="player"}
-    local gui_dropdown_index = mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_drop_down_table"]["region-cloner_direction-to-copy"].selected_index
+    local gui_dropdown_index = frame_flow["region-cloner_control-window"]["region-cloner_drop_down_table"]["region-cloner_direction-to-copy"].selected_index
     job.tiles_to_paste_x, job.tiles_to_paste_y = convert_box_to_offsets(gui_dropdown_index, job.bounding_box)
     job.tiles_to_paste_x, job.tiles_to_paste_y = clean_entity_pool(temp_ent_pool, job.tiles_to_paste_x, job.tiles_to_paste_y)
     job.entity_pool = temp_ent_pool
@@ -113,8 +155,17 @@ function job_create(player)
     job.current_paste = 1
     job.flag_complete = false
     job.cancel_button_name = "region-cloner_" .. job.player.name .. "_job" .. "_cancel_button"
-    --[[Future]]
+    local advanced_settings_gui = frame_flow[GUI_ELEMENT_PREFIX .. "advanced_view_pane"]
+    local tile_paste_override_table = advanced_settings_gui[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_override_table"]
     job.clean_paste_area_flag = true
+    local custom_tile_paste_length_flag = tile_paste_override_table[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_override_checkbox"].state
+    if (custom_tile_paste_length_flag) then
+        job.tiles_to_paste_x = tonumber(tile_paste_override_table[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_x"].text)
+        job.tiles_to_paste_y = tonumber(tile_paste_override_table[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_y"].text)
+    end
+    local advanced_clear_paste_area_table = advanced_settings_gui[GUI_ELEMENT_PREFIX .. "advanced_clear_paste_area_table"]
+    job.clear_normal_entities = advanced_clear_paste_area_table[GUI_ELEMENT_PREFIX .. "clear_normal_entities"].state
+    job.clear_resource_entities = advanced_clear_paste_area_table[GUI_ELEMENT_PREFIX .. "clear_resource_entities"].state
     if (debug_logging) then
         log("finished job creation")
     end

@@ -104,6 +104,10 @@ function validate_coordinates_and_update_view(player, restrict_area_bool)
     local old_right = tonumber(current_view["right_bottom_x"].text)
     local old_bottom = tonumber(current_view["right_bottom_y"].text)
     if (old_left and old_top and old_bottom and old_right) then
+        if (old_left == old_right or old_top == old_bottom) then
+            player.print("You have selected a bounding box with 0 height/width!")
+            return false
+        end
         local new_left, new_top, new_right, new_bottom = old_left, old_top, old_right, old_bottom
         if (restrict_area_bool) then
             new_left, new_top, new_right, new_bottom = restrict_selection_area_to_entities(old_left, old_top, old_right, old_bottom, player)
@@ -120,10 +124,11 @@ function validate_coordinates_and_update_view(player, restrict_area_bool)
 end
 
 function validate_player_copy_paste_settings(player)
+    local frame_flow = mod_gui.get_frame_flow(player)
     if not (validate_coordinates_and_update_view(player, false)) then
         return false
     end
-    local top_gui = mod_gui.get_frame_flow(player)["region-cloner_control-window"]
+    local top_gui = frame_flow["region-cloner_control-window"]
     local direction_to_copy = top_gui["region-cloner_drop_down_table"]["region-cloner_direction-to-copy"].selected_index
     local times_to_paste = tonumber(top_gui["region-cloner_drop_down_table"]["number_of_copies"].text)
     if (times_to_paste) then
@@ -137,6 +142,22 @@ function validate_player_copy_paste_settings(player)
     end
     if not (direction_to_copy) then
         player.print("Somehow your direction to paste is not valid!")
+    end
+    local advanced_settings_gui = frame_flow[GUI_ELEMENT_PREFIX .. "advanced_view_pane"]
+    local custom_tile_paste_length_table = advanced_settings_gui[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_override_table"]
+    if (custom_tile_paste_length_table[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_override_checkbox"].state) then
+        --[[Only validate custom tile paste lengths if the box is checked]]
+        local tiles_to_paste_x = tonumber(custom_tile_paste_length_table[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_x"].text)
+        local tiles_to_paste_y = tonumber(custom_tile_paste_length_table[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_y"].text)
+        if (tiles_to_paste_x and tiles_to_paste_y) then
+            if (tiles_to_paste_x == 0 and tiles_to_paste_y == 0) then
+                player.print("You selected custom tile paste lengths but they're both 0!")
+                return false
+            end
+        else
+            player.print("Your custom tile paste length(s) are not a number!")
+            return false
+        end
     end
     return true
 end
@@ -169,7 +190,7 @@ local function clone_entites_by_job(job)
                     end
                 end
             end
-            job.current_paste, job.flag_complete = clone_entity_pool(job.player, job.entity_pool, job.tiles_to_paste_x, job.tiles_to_paste_y, job.current_paste, job.times_to_paste, job.bounding_box, job.flag_complete)
+            job.current_paste, job.flag_complete = clone_entity_pool(job.player, job.entity_pool, job.tiles_to_paste_x, job.tiles_to_paste_y, job.current_paste, job.times_to_paste, job.bounding_box, job.flag_complete, job.clear_normal_entities, job.clear_resource_entities)
         else
             job.player.print("You had valid copy paste settings but there were no entities to clone!")
             job.flag_complete = true
@@ -178,46 +199,16 @@ local function clone_entites_by_job(job)
     end
 end
 
---[[TODO: put this gui junk in gui.lua]]
-function register_gui_job(player, job)
-    local job_pane = mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_job-watcher"]
-    local job_name = "region-cloner_" .. job.player.name .. "_job"
-    job_pane.add{type="table", column_count = 3, name=job_name}
-    job_pane[job_name].add{type="label", caption=job.player.name}
-    local pbar = job_pane[job_name].add{type="progressbar", value=job.current_paste / job.times_to_paste, name = job_name .. "_job_progress"}
-    pbar.style.horizontally_stretchable = true
-    local cancelbutton = job_pane[job_name].add{type="button", name = job_name .. "_cancel_button", tooltip="Cancel ongoing copy paste job", caption="x"}
-end
-
-function unregister_gui_job(player, job)
-    local job_pane = mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_job-watcher"]
-    local job_name = "region-cloner_" .. job.player.name .. "_job"
-    if (job_pane[job_name]) then
-        job_pane[job_name].destroy()
-    end
-    if not next(job_pane.children) then
-        job_pane.style.visible = false
-    end
-end
-
-function update_job_gui_progress(player, job)
-    local job_pane = mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_job-watcher"]
-    local job_name = "region-cloner_" .. job.player.name .. "_job"
-    if (job_pane[job_name][job_name .. "_job_progress"]) then
-        job_pane[job_name][job_name .. "_job_progress"].value = job.current_paste / job.times_to_paste
-    end
-end
-
 function update_player_progress_bars(job_queue)
     for _, player in pairs(game.players) do
-        local job_pane = mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_job-watcher"]
+        local job_pane = mod_gui.get_frame_flow(player)[GUI_ELEMENT_PREFIX .. "control-window"][GUI_ELEMENT_PREFIX .. "job-watcher"]
         for _, job in pairs(job_queue) do
             if (job.flag_complete) then
                 unregister_gui_job(player, job)
             else
                 if (job.times_to_paste > 1) then
                     job_pane.style.visible = true
-                    if not (job_pane["region-cloner_" .. job.player.name .. "_job"]) then
+                    if not (job_pane[GUI_ELEMENT_PREFIX .. job.player.name .. "_job"]) then
                         register_gui_job(player, job)
                     end
                     update_job_gui_progress(player, job)
@@ -238,10 +229,6 @@ end
 function issue_copy_paste(player)
     if (debug_logging) then
         log("entering issue_copy_paste")
-    end
-    validate_player_copy_paste_settings(player)
-    if (debug_logging) then
-        log("validate_player_copy_paste_settings")
     end
     local my_job = job_create(player)
     if (debug_logging) then
