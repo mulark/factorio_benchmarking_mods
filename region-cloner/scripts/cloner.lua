@@ -1,16 +1,5 @@
 require("scripts.common")
 
-function correct_for_rail_grid(tile_paste_length)
-    if ((tile_paste_length % 2) ~= 0) then
-        if (tile_paste_length < 0) then
-            tile_paste_length = tile_paste_length - 1
-        else
-            tile_paste_length = tile_paste_length + 1
-        end
-    end
-    return tile_paste_length
-end
-
 function copy_entity (original_entity, cloned_entity, surface)
     copy_properties(original_entity, cloned_entity)
     copy_inventories_and_fluid(original_entity, cloned_entity)
@@ -184,33 +173,6 @@ function copy_transport_line_contents (original_entity, cloned_entity, surface)
             end
         end
     end
-end
-
-function clean_entity_pool (entity_pool, tiles_to_paste_x, tiles_to_paste_y)
-    local flag_rail_found = false
-    for key, ent in pairs(entity_pool) do
-        if has_value(ent.type, {"straight-rail", "curved-rail"}) then
-            flag_rail_found = true
-        end
-        if has_value(ent.type, {"player", "entity-ghost", "tile-ghost"}) then
-            entity_pool[key] = nil
-        else
-            if (ent.valid) then
-                if not has_value(ent.type, {"decider-combinator", "arithmetic-combinator"}) then
-                    ent.active = false
-                end
-            end
-        end
-    end
-    if (flag_rail_found) then
-        if (tiles_to_paste_x ~= 0) then
-            tiles_to_paste_x = correct_for_rail_grid(tiles_to_paste_x)
-        end
-        if (tiles_to_paste_y ~= 0) then
-            tiles_to_paste_y = correct_for_rail_grid(tiles_to_paste_y)
-        end
-    end
-    return tiles_to_paste_x, tiles_to_paste_y
 end
 
 local function ensure_entity_pool_valid(player, pool)
