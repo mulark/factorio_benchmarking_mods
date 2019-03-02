@@ -282,7 +282,7 @@ function clone_entity_pool(player, entity_pool, tpx, tpy, current_paste, times_t
                     --[[We don't want to copy any more normal priority entities on the last paste]]
                     local x_offset = ent.position.x + tpx * current_paste
                     local y_offset = ent.position.y + tpy * current_paste
-                    create_entity_values = {name = ent.name, position={x_offset, y_offset}, direction=ent.direction, force="player"}
+                    create_entity_values = {name = ent.name, position={x_offset, y_offset}, direction=ent.direction, force="player", create_build_effect_smoke = false}
                     if (ent.type == "underground-belt") then
                         create_entity_values.type = ent.belt_to_ground_type
                     end
@@ -304,7 +304,7 @@ function clone_entity_pool(player, entity_pool, tpx, tpy, current_paste, times_t
                 --[[local entity_pool_to_recreate = {}]]
                 local x_offset = ent.position.x + tpx * (current_paste - 1)
                 local y_offset = ent.position.y + tpy * (current_paste - 1)
-                create_entity_values = {name = ent.name, position={x_offset, y_offset}, direction=ent.direction, force="player"}
+                create_entity_values = {name = ent.name, position={x_offset, y_offset}, direction=ent.direction, force="player", create_build_effect_smoke = false}
                 local newent = surface.create_entity(create_entity_values)
                 if not (newent) then
                     newent = surface.find_entity(ent.name, {x_offset, y_offset})

@@ -207,7 +207,7 @@ function update_player_progress_bars(job_queue)
                 unregister_gui_job(player, job)
             else
                 if (job.times_to_paste > 1) then
-                    job_pane.style.visible = true
+                    job_pane.visible = true
                     if not (job_pane[GUI_ELEMENT_PREFIX .. job.player.name .. "_job"]) then
                         register_gui_job(player, job)
                     end

@@ -41,13 +41,13 @@ script.on_event({defines.events.on_gui_click}, function(event)
         gui.create_gui(player)
     end
     if (clicked_on == GUI_ELEMENT_PREFIX .. "main-button") then
-        frame_flow[GUI_ELEMENT_PREFIX .. "control-window"].style.visible = not frame_flow[GUI_ELEMENT_PREFIX .. "control-window"].style.visible
-        if (frame_flow[GUI_ELEMENT_PREFIX .. "advanced_view_pane"].style.visible) then
-            frame_flow[GUI_ELEMENT_PREFIX .. "advanced_view_pane"].style.visible = false
+        frame_flow[GUI_ELEMENT_PREFIX .. "control-window"].visible = not frame_flow[GUI_ELEMENT_PREFIX .. "control-window"].visible
+        if (frame_flow[GUI_ELEMENT_PREFIX .. "advanced_view_pane"].visible) then
+            frame_flow[GUI_ELEMENT_PREFIX .. "advanced_view_pane"].visible = false
         end
     end
     if (clicked_on == GUI_ELEMENT_PREFIX .. "advanced_view_button") then
-        frame_flow[GUI_ELEMENT_PREFIX .. "advanced_view_pane"].style.visible = not frame_flow[GUI_ELEMENT_PREFIX .. "advanced_view_pane"].style.visible
+        frame_flow[GUI_ELEMENT_PREFIX .. "advanced_view_pane"].visible = not frame_flow[GUI_ELEMENT_PREFIX .. "advanced_view_pane"].visible
     end
     if (clicked_on == GUI_ELEMENT_PREFIX .. "get_selection_tool_button") then
         --[[Try to clean anything in the cursor]]

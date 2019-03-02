@@ -6,7 +6,7 @@ data:extend(
         name = "region-cloner_selection-tool",
         icon_size = 128,
         icon = "__region-cloner__/graphics/lazy-bastard.png",
-        flags = {"goes-to-quickbar", "hidden"},
+        flags = {"hidden"},
         subgroup = "tool",
         order = "a",
         stack_size = 1,

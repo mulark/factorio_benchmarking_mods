@@ -89,7 +89,7 @@ function unregister_gui_job(player, job)
         job_pane[job_name].destroy()
     end
     if not next(job_pane.children) then
-        job_pane.style.visible = false
+        job_pane.visible = false
     end
 end
 
