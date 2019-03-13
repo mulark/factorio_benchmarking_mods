@@ -1,0 +1,10 @@
+{
+  "name": "old-recipe",
+  "version": "0.0.2",
+  "title": "old recipe",
+  "author": "mulark",
+  "contact": "",
+  "description": "makes recipe old",
+  "factorio_version": "0.17",
+  "dependencies": []
+}
