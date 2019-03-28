@@ -2,13 +2,8 @@ require "util"
 
 
 --[[In the future this will be rewritten for then general case. I want to only listen to the on_player_driving_changed_state event.]]
+--[[TODO use count_entities_filtered() where applicable, should be more optimized]]
 
-script.on_init(function()
-    all_cars = game.surfaces[1].find_entities_filtered({force = "player", type = "car"})
-    for key, ent in pairs(all_cars) do
-        toggle_cars(ent)
-    end
-end)
 local function round_to_closest_tile_with_offset(x)
     x = math.floor(x) + 0.5
     return (x)
@@ -23,13 +18,11 @@ function toggle_cars(entity)
     local surface = entity.surface
     if (entity.get_driver() or entity.get_passenger()) then
         entity.active = true
+        return
     else
         entity.active = false
     end
-    if (surface.find_entity("express-transport-belt", {x_coord, y_coord} )) then
-        entity.active = true
-    end
-    if (surface.find_entity("express-splitter", {x_coord, y_coord} )) then
+    if (surface.count_entities_filtered({type={"transport-belt", "splitter"}, position={x_coord, y_coord}} ) > 0) then
         entity.active = true
     end
 end
