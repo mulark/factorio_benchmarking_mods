@@ -1,4 +1,5 @@
 local tiles_to_pave = settings.startup["creative-world-plus_tiles-to-pave"].value
+local tile_type = settings.startup["creative-world-plus_tile-type"].value
 if (tiles_to_pave == "All" or tiles_to_pave == "Land Tiles Only") then
     for _, tile in pairs (data.raw.tile) do
         if (tiles_to_pave == "All") then
@@ -9,7 +10,7 @@ if (tiles_to_pave == "All" or tiles_to_pave == "Land Tiles Only") then
             end
         end
     end
-    data.raw.tile["refined-concrete"].autoplace = {}
+    data.raw.tile[tile_type].autoplace = {}
 end
 if (settings.startup["creative-world-plus_remove-rocks"].value == true) then
     --[[Simple entities with autoplace are the rocks]]
