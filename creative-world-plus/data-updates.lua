@@ -24,6 +24,9 @@ data.raw["map-gen-presets"]["default"]["creative-world-plus"] =
             },
             ["trees"] = {
                 size = "none"
+            },
+            ["enemy-base"] = {
+              size = "none"
             }
 		},
         water = "none",
@@ -32,5 +35,10 @@ data.raw["map-gen-presets"]["default"]["creative-world-plus"] =
             cliff_elevation_interval = 40,
             cliff_elevation_0 = 1024
         }
-	}
+	},
+    advanced_settings = {
+        pollution = {
+            enabled = false
+        }
+    }
 }

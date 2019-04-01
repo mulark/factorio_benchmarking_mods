@@ -39,7 +39,7 @@ data:extend({
         type = "string-setting",
         name = "creative-world-plus_tile-type",
         setting_type = "startup",
-        default_value = "concrete",
+        default_value = "refined-concrete",
         allowed_values = tiles,
         order="e"
     }
