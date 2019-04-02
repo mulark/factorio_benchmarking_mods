@@ -1,3 +1,4 @@
+if not mods["angelsrefining"] then
 data.raw["map-gen-presets"]["default"]["creative-world-plus"] =
 {
 	order = "w",
@@ -42,3 +43,4 @@ data.raw["map-gen-presets"]["default"]["creative-world-plus"] =
         }
     }
 }
+end
