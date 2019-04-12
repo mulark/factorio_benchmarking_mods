@@ -1,0 +1,2 @@
+0.0.7:
+Fixed modded ores for real. Created a changelog which won't be parsed but who cares.
