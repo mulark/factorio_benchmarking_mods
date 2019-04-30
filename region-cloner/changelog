@@ -1,3 +1,6 @@
+1.1.0:
+Copy circuit network signals and use clone_entities() for most entities.
+
 1.0.1:
 Don't set beacons inactive (breaks shingled pastes in very specific edge case).
 
