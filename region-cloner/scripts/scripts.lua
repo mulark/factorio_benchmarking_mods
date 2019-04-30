@@ -176,95 +176,100 @@ local function decode_direction_to_copy(direction_to_copy)
     return tile_paste_direction_x, tile_paste_direction_y
 end
 
-local function clone_entites_by_job(job)
-    if (job.entity_pool) then
-        --[[In 0.17 we might not need the entity_pool anymore]]
-        if next(job.entity_pool) then
-            --[[If there's at least 1 thing in the entity pool]]
-            if (job.current_paste == 1) then
-                for _, ent in pairs(job.entity_pool) do
-                    if (ent.valid) then
-                        if not has_value(ent.type, DESYNC_IF_ENTITIES_ARE_INACTIVE_ENTITIES) then
-                            ent.active = false
-                        end
-                    end
+local function convert_bounding_box_to_paste_region(vector, bounding_box)
+    local modified_box = {}
+    local left_top = {}
+    local right_bottom = {}
+    left_top["x"] = bounding_box.left_top.x + vector.x
+    left_top["y"] = bounding_box.left_top.y + vector.y
+    --[[Subtract 0.01 tiles off of the returned bounding_box because it will spill into the next chunk tile]]
+    right_bottom["x"] = bounding_box.right_bottom.x + vector.x - 0.01
+    right_bottom["y"] = bounding_box.right_bottom.y + vector.y - 0.01
+    modified_box["left_top"] = left_top
+    modified_box["right_bottom"] = right_bottom
+    print(serpent.block(modified_box))
+    return modified_box
+end
+
+local function clear_paste_area(tpx, tpy, current_paste, bounding_box, forces_to_clear, surface, entity_pool)
+    local new_box = convert_bounding_box_to_paste_region({x = tpx * current_paste, y = tpy * current_paste}, bounding_box)
+    local second_try_destroy_entities = {}
+    local possible_entities_to_destroy = surface.find_entities_filtered{area=new_box, force=forces_to_clear}
+    for key,found_ent in pairs (possible_entities_to_destroy) do
+        if (found_ent.valid) then
+            for _,ent in pairs(entity_pool) do
+                if (found_ent == ent) then
+                    --[[If any entity we find in the possible area to destroy entities is part of the set we intend to clone from, dont destroy that entity.]]
+                    possible_entities_to_destroy[key] = nil
                 end
             end
-            job.current_paste, job.flag_complete = clone_entity_pool(job.player, job.entity_pool, job.tiles_to_paste_x, job.tiles_to_paste_y, job.current_paste, job.times_to_paste, job.bounding_box, job.flag_complete, job.clear_normal_entities, job.clear_resource_entities)
-        else
-            job.player.print("You had valid copy paste settings but there were no entities to clone!")
-            job.flag_complete = true
-            update_player_progress_bars(global.job_queue)
+        end
+    end
+    for _, ent in pairs(possible_entities_to_destroy) do
+        if (ent.valid) then
+            --[[Make sure we check valid ents because if you destroy a rocket silo with a rocket theres a chance that the rocket itself becomes invalid.]]
+            ent.clear_items_inside()
+            if not (ent.can_be_destroyed()) then
+                --[[Tracks with a train on them can't be destroyed, save them and try again at the end]]
+                table.insert(second_try_destroy_entities, ent)
+            end
+            ent.destroy()
         end
     end
 end
 
-function update_player_progress_bars(job_queue)
-    for _, player in pairs(game.players) do
-        local job_pane = mod_gui.get_frame_flow(player)[GUI_ELEMENT_PREFIX .. "control-window"][GUI_ELEMENT_PREFIX .. "job-watcher"]
-        for _, job in pairs(job_queue) do
-            if (job.flag_complete) then
-                unregister_gui_job(player, job)
-            else
-                if (job.times_to_paste > 1) then
-                    job_pane.visible = true
-                    if not (job_pane[GUI_ELEMENT_PREFIX .. job.player.name .. "_job"]) then
-                        register_gui_job(player, job)
-                    end
-                    update_job_gui_progress(player, job)
-                end
-            end
+local function validate_entity_pool(entity_pool)
+    for key, ent in pairs(entity_pool) do
+        if not (ent.valid) then
+            game.print("An entity pool member was invalid. You probably pasted over the source paste area.")
+            entity_pool[key] = nil
         end
+    end
+end
+
+function issue_copy_paste(player)
+    if (debug_logging) then
+        log("entering issue_copy_paste()")
+    end
+    local job = job_create(player)
+    --[[Clearing paste area if setting is set]]
+    local forces_to_clear_paste_area = {"enemy"}
+    if (job.clear_normal_entities) then
+        table.insert(forces_to_clear_paste_area, "player")
+    end
+    if (job.clear_resource_entities) then
+        table.insert(forces_to_clear_paste_area, "neutral")
+    end
+    for x=1, job.times_to_paste do
+        clear_paste_area(job.tiles_to_paste_x, job.tiles_to_paste_y, x, job.bounding_box, forces_to_clear_paste_area, job.surface, job.entity_pool)
+        validate_entity_pool(job.blacklisted_entity_pool)
+        copy_blacklisted_entity_pool(job.player, job.blacklisted_entity_pool, {x = job.tiles_to_paste_x * x, y = job.tiles_to_paste_y * x}, job.surface, job.force)
+        validate_entity_pool(job.entity_pool)
+        copy_entity_pool(job.player, job.entity_pool, {x = job.tiles_to_paste_x * x, y = job.tiles_to_paste_y * x}, job.surface, job.force)
+    end
+    --[[Set power of original entity pool combinators to 0 to delay them by 1 tick.]]
+    for _,ent in pairs(job.entity_pool) do
+        if has_value(ent.type, {"decider-combinator", "arithmetic-combinator"}) then
+            ent.energy = 0
+        end
+    end
+    if (debug_logging) then
+        log("Finished issuing copy paste")
     end
 end
 
 function do_on_tick()
     script.on_event(defines.events.on_tick, function(event)
-        if (game.tick % TICKS_PER_PASTE) then
-            run_on_tick()
+        if not next (global.combinators_to_destroy_in_next_tick) then
+            global.do_on_tick = false
+            script.on_event(defines.events.on_tick, nil)
+        end
+        for key,ent in pairs(global.combinators_to_destroy_in_next_tick) do
+            local signals = ent.get_circuit_network(defines.wire_type.red).signals
+            if (signals) then
+                ent.destroy()
+                global.combinators_to_destroy_in_next_tick[key] = nil
+            end
         end
     end)
-end
-
-function issue_copy_paste(player)
-    if (debug_logging) then
-        log("entering issue_copy_paste")
-    end
-    local my_job = job_create(player)
-    if (debug_logging) then
-        log("created player job")
-    end
-    global.job_queue[player.name] = my_job
-    --[[local job_from_another_player = virtual_job_create(32, -32, 64, 0, 100)
-    job_queue[job_from_another_player.player.name] = job_from_another_player]]
-    global.do_on_tick = true
-    do_on_tick()
-end
-
-function run_on_tick()
-    if (debug_logging) then
-        log("started on tick behavior")
-    end
-    for job_key, job in pairs(global.job_queue) do
-        if (job.flag_complete) then
-            --[[If this job is finished then set the entity pool active and unregister the job]]
-            if (job.entity_pool) then
-                for _,ent in pairs(job.entity_pool) do
-                    if (ent.valid) then
-                        ent.active = true
-                    end
-                end
-            end
-            job = nil
-            global.job_queue[job_key] = nil
-        else
-            clone_entites_by_job(job)
-        end
-    end
-    update_player_progress_bars(global.job_queue)
-    if not next(global.job_queue) then
-        --[[If the job_queue has no jobs then unregister the on_tick event handler]]
-        global.do_on_tick = false
-        script.on_event(defines.events.on_tick, nil)
-    end
 end

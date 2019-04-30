@@ -1,16 +1,17 @@
 GUI_ELEMENT_PREFIX = "region-cloner_"
 
+global.combinators_to_destroy_in_next_tick = {}
+
 --[[Ghosts will break script as it exists currently. Copying the player is annoying and only serves to clutter the map.]]
 ENTITIES_TO_NOT_CLONE = {"player", "entity-ghost", "tile-ghost"}
 
-TICKS_PER_PASTE = 2
 
 --[[These types have defines.inventory.chest return their fuel slot, which mean we double copy their fuel]]
-HAS_DEFINES_INVENTORY_CHEST_BUT_SHOULDNT_TYPES = {"locomotive", "car"}
+--[[Only locomotive is actually needed anymore]]
+HAS_DEFINES_INVENTORY_CHEST_BUT_SHOULDNT_TYPES = {"locomotive", "car", "beacon"}
 
---[[For 0.16.x setting a combinator inactive can cause the game to desync]]
---[[Beacons won't cause desyncs if they are set inactive, but this is just an easy way to prevent them from going inactive.]]
-DESYNC_IF_ENTITIES_ARE_INACTIVE_ENTITIES = {"decider-combinator", "arithmetic-combinator", "beacon"}
+--[[Presently copying rolling stock with clone_entities{} flips the direction of trains and doesn't copy the manual_mode.]]
+BLACKLISTED_ENTITY_TYPES_FROM_NEW_CLONE_METHODS = {"locomotive", "cargo-wagon", "straight-rail", "curved-rail", "fluid-wagon", "artillery-wagon"}
 
 --[[Low priority entities depend on other entities existing in the world first]]
 --[[Beacons are here because wakeup lists for inserters won't tie to a car in certain designs, if the beacons exist. After the wakeup list is determined beacons can be placed.]]
