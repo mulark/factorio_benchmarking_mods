@@ -2,8 +2,8 @@ GUI_ELEMENT_PREFIX = "region-cloner_"
 
 global.combinators_to_destroy_in_next_tick = {}
 
---[[Ghosts will break script as it exists currently. Copying the player is annoying and only serves to clutter the map.]]
-ENTITIES_TO_NOT_CLONE = {"player", "entity-ghost", "tile-ghost"}
+--[[Ghosts will break script as it exists currently. Copying the player is annoying and only serves to clutter the map. Adding character for 0.17.35+ support]]
+ENTITIES_TO_NOT_CLONE = {"player", "character", "entity-ghost", "tile-ghost"}
 
 
 --[[These types have defines.inventory.chest return their fuel slot, which mean we double copy their fuel]]
