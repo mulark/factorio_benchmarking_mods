@@ -68,11 +68,15 @@ script.on_event({defines.events.on_gui_click}, function(event)
             issue_copy_paste(player)
         end
     end
-    for _, job in pairs (global.job_queue) do
-        if (clicked_on == job.cancel_button_name) then
-            job.flag_complete = true
-            update_player_progress_bars(global.job_queue)
+    if (global.job_queue) then
+        for _, job in pairs (global.job_queue) do
+            if (clicked_on == job.cancel_button_name) then
+                job.flag_complete = true
+                update_player_progress_bars(global.job_queue)
+            end
         end
+    else
+        global.job_queue = {}
     end
 end)
 
