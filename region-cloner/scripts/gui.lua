@@ -63,11 +63,6 @@ gui.create_gui = function (player)
         local get_selection_tool_button = button_control_table.add{type="button", name=GUI_ELEMENT_PREFIX .. "get_selection_tool_button", caption="Get Selection Tool"}
         local copy_paste_start_button = button_control_table.add{type="button", name=GUI_ELEMENT_PREFIX .. "issue_copy_pastes_button", caption="Start"}
         copy_paste_start_button.style.horizontal_align="right"
-
-    --[[Player, job progress bar, job cancel button]]
-    local job_watcher = mod_frame.add{type="frame", name=GUI_ELEMENT_PREFIX .. "job-watcher", direction="vertical"}
-    job_watcher.visible = false
-
 end
 
 gui.clear_gui = function (player)

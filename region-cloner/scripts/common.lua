@@ -13,11 +13,6 @@ HAS_DEFINES_INVENTORY_CHEST_BUT_SHOULDNT_TYPES = {"locomotive", "car", "beacon"}
 --[[Presently copying rolling stock with clone_entities{} flips the direction of trains and doesn't copy the manual_mode.]]
 BLACKLISTED_ENTITY_TYPES_FROM_NEW_CLONE_METHODS = {"locomotive", "cargo-wagon", "straight-rail", "curved-rail", "fluid-wagon", "artillery-wagon"}
 
---[[Low priority entities depend on other entities existing in the world first]]
---[[Beacons are here because wakeup lists for inserters won't tie to a car in certain designs, if the beacons exist. After the wakeup list is determined beacons can be placed.]]
---[[Robots will fly to a different robonetwork if their parent roboport exists after they do.]]
-LOW_PRIORITY_ENTITIES = {"beacon", "logistic-robot", "construction-robot"}
-
 ROLLING_STOCK_TYPES = {"locomotive", "cargo-wagon", "fluid-wagon", "artillery-wagon"}
 
 debug_logging = false
