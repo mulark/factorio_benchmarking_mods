@@ -19,7 +19,6 @@ end)
 
 
 script.on_configuration_changed(function()
-    global.job_queue = {}
     if global.do_on_tick == true then
         do_on_tick()
     end
@@ -67,16 +66,6 @@ script.on_event({defines.events.on_gui_click}, function(event)
         if (validate_player_copy_paste_settings(player)) then
             issue_copy_paste(player)
         end
-    end
-    if (global.job_queue) then
-        for _, job in pairs (global.job_queue) do
-            if (clicked_on == job.cancel_button_name) then
-                job.flag_complete = true
-                update_player_progress_bars(global.job_queue)
-            end
-        end
-    else
-        global.job_queue = {}
     end
 end)
 
