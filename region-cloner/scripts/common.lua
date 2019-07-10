@@ -22,7 +22,7 @@ ROLLING_STOCK_TYPES = {"locomotive", "cargo-wagon", "fluid-wagon", "artillery-wa
 
 debug_logging = false
 
-function has_value (val, tab)
+function has_value(val, tab)
     for index, value in ipairs(tab) do
         if value == val then
             return true

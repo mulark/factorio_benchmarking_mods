@@ -21,7 +21,7 @@ local function correct_for_rail_grid(tile_paste_length)
     return tile_paste_length
 end
 
-local function clean_entity_pool (entity_pool, tiles_to_paste_x, tiles_to_paste_y)
+local function clean_entity_pool(entity_pool, tiles_to_paste_x, tiles_to_paste_y)
     local flag_rail_found = false
     for key, ent in pairs(entity_pool) do
         if has_value(ent.type, {"straight-rail", "curved-rail"}) then

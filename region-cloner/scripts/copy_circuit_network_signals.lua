@@ -2,7 +2,7 @@ require("scripts.common")
 
 --[[TODO Copy over the original with this method.]]
 
-function copy_signals_in_flight (original_entity, cloned_entity)
+function copy_signals_in_flight(original_entity, cloned_entity)
     if not has_value(original_entity.type, {"decider-combinator", "arithmetic-combinator"}) then
         return
     end

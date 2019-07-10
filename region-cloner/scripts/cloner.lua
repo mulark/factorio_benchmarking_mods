@@ -45,7 +45,7 @@ function correct_cloned_inserter_targets(entity_pool, vector, surface, force)
     end
 end
 
-function copy_entity (original_entity, cloned_entity, surface)
+function copy_entity(original_entity, cloned_entity, surface)
     cloned_entity.copy_settings(original_entity)
     copy_inventories_and_fluid(original_entity, cloned_entity)
     copy_train(original_entity, cloned_entity)
@@ -76,7 +76,7 @@ local function internal_inventory_copy(original_entity, cloned_entity, INV_DEFIN
     end
 end
 
-function copy_inventories_and_fluid (original_entity, cloned_entity)
+function copy_inventories_and_fluid(original_entity, cloned_entity)
     --[[Defines are not strict which means certain entities have inventory defines which make no sense]]
     if not has_value(original_entity.type, HAS_DEFINES_INVENTORY_CHEST_BUT_SHOULDNT_TYPES) then
         --[[Please wube why is this necessary?]]
@@ -109,7 +109,7 @@ function copy_inventories_and_fluid (original_entity, cloned_entity)
     end
 end
 
-function copy_train (original_entity, cloned_entity)
+function copy_train(original_entity, cloned_entity)
     if (original_entity.train) then
         cloned_entity.disconnect_rolling_stock(defines.rail_direction.front)
         cloned_entity.disconnect_rolling_stock(defines.rail_direction.back)
