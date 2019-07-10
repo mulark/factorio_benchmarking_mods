@@ -126,10 +126,11 @@ function copy_train(original_entity, cloned_entity)
     end
 end
 
-local function copy_rails_and_trains(entity_pool, surface, vector)
+local function copy_trains_and_required_rails(entity_pool, surface, vector)
     local rail_pool = {}
     for key,ent in pairs(entity_pool) do
         if not (ent.can_be_destroyed()) then
+            --[[If rails are not destroyable then they must have a train on them]]
             table.insert(rail_pool, ent)
         end
     end
@@ -142,22 +143,29 @@ local function copy_rails_and_trains(entity_pool, surface, vector)
             if (new_ent) then
                 copy_entity(ent, new_ent, surface)
             else
-                game.print("Something went horribly wrong when we tried to copy a rolling stock!")
-                log("We tried to copy a rolling stock but failed horribly.")
+                --[[If two trains are colliding we can fail to create a rolling stock in the space]]
+                game.print("Something went horribly wrong when we tried to copy a rolling stock! Probably due to game engine limitations.")
+                if (debug_logging) then
+                    log("We tried to copy a rolling stock but failed horribly.")
+                end
             end
         end
     end
 end
 
-function copy_blacklisted_entity_pool(player, entity_pool, vector, surface, force)
-    copy_rails_and_trains(entity_pool, surface, vector)
-    --[[trains/rails in entity pool are removed ]]
+function copy_remaining_rails(entity_pool)
     for _,ent in pairs(entity_pool) do
         local copy = surface.create_entity({name = ent.name, position = {vector.x + ent.position.x, vector.y + ent.position.y}, force = ent.force, direction = ent.direction})
         if (copy) then
             copy_entity (ent, copy, surface)
         end
     end
+end
+
+
+function copy_blacklisted_entity_pool(player, entity_pool, vector, surface, force)
+    copy_trains_and_required_rails(entity_pool, surface, vector)
+    copy_remaining_rails(entity_pool)
 end
 
 function copy_entity_pool(player, entity_pool, vector, surface, force)
