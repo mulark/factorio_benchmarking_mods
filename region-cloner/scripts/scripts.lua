@@ -187,7 +187,6 @@ local function convert_bounding_box_to_paste_region(vector, bounding_box)
     right_bottom["y"] = bounding_box.right_bottom.y + vector.y - 0.01
     modified_box["left_top"] = left_top
     modified_box["right_bottom"] = right_bottom
-    print(serpent.block(modified_box))
     return modified_box
 end
 

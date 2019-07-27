@@ -47,6 +47,27 @@ function copy_signals_in_flight(original_entity, cloned_entity)
     end
 end
 
+function copy_circuit_network_reference_connections (original_entity, cloned_entity)
+    if (original_entity.circuit_connection_definitions) then
+        for x=1, #original_entity.circuit_connection_definitions do
+            local targetent = original_entity.circuit_connection_definitions[x].target_entity
+            local offset_x = (original_entity.position.x - targetent.position.x)
+            local offset_y = (original_entity.position.y - targetent.position.y)
+            local targetnewent = cloned_entity.surface.find_entity(targetent.name, {(cloned_entity.position.x - offset_x), (cloned_entity.position.y - offset_y)})
+            if (targetnewent) then
+                cloned_entity.connect_neighbour({target_entity = targetnewent, wire=original_entity.circuit_connection_definitions[x].wire, source_circuit_id=original_entity.circuit_connection_definitions[x].source_circuit_id, target_circuit_id=original_entity.circuit_connection_definitions[x].target_circuit_id})
+            end
+            targetent = nil
+            offset_x = nil
+            offset_y = nil
+            targetnewent = nil
+        end
+    end
+end
+
 script.on_event(defines.events.on_entity_cloned, function(event)
-    copy_signals_in_flight(event.source, event.destination)
+    if (event.source.valid and event.destination.valid) then
+        copy_signals_in_flight(event.source, event.destination)
+        copy_circuit_network_reference_connections(event.source, event.destination)
+    end
 end)
