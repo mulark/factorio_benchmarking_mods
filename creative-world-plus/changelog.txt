@@ -1,2 +1,5 @@
+0.0.8:
+Corrected preset to handle cliffs after updates.
+
 0.0.7:
 Fixed modded ores for real. Created a changelog which won't be parsed but who cares.

@@ -13,7 +13,8 @@ data.raw["map-gen-presets"]["default"]["creative-world-plus"] =
         cliff_settings = {
             name = "none",
             cliff_elevation_interval = 40,
-            cliff_elevation_0 = 1024
+            cliff_elevation_0 = 1024,
+            richness = 0
         }
 	},
     advanced_settings = {
