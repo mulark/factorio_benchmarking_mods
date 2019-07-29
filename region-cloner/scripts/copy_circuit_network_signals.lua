@@ -55,7 +55,14 @@ function copy_circuit_network_reference_connections (original_entity, cloned_ent
             local offset_y = (original_entity.position.y - targetent.position.y)
             local targetnewent = cloned_entity.surface.find_entity(targetent.name, {(cloned_entity.position.x - offset_x), (cloned_entity.position.y - offset_y)})
             if (targetnewent) then
-                cloned_entity.connect_neighbour({target_entity = targetnewent, wire=original_entity.circuit_connection_definitions[x].wire, source_circuit_id=original_entity.circuit_connection_definitions[x].source_circuit_id, target_circuit_id=original_entity.circuit_connection_definitions[x].target_circuit_id})
+                local connection_formed = cloned_entity.connect_neighbour({target_entity = targetnewent, wire=original_entity.circuit_connection_definitions[x].wire, source_circuit_id=original_entity.circuit_connection_definitions[x].source_circuit_id, target_circuit_id=original_entity.circuit_connection_definitions[x].target_circuit_id})
+                if not (connection_formed) then
+                    --[[Possibly these were too far apart, you can make them connected but far apart with teleporting]]
+                    local cloned_entity_original_position = cloned_entity.position
+                    cloned_entity.teleport(targetnewent.position)
+                    cloned_entity.connect_neighbour({target_entity = targetnewent, wire=original_entity.circuit_connection_definitions[x].wire, source_circuit_id=original_entity.circuit_connection_definitions[x].source_circuit_id, target_circuit_id=original_entity.circuit_connection_definitions[x].target_circuit_id})
+                    cloned_entity.teleport(cloned_entity_original_position)
+                end
             end
             targetent = nil
             offset_x = nil
