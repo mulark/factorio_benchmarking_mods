@@ -1,3 +1,6 @@
+1.1.5:
+Connect clone circuit connections even if the source entities have been teleported outside the normal connection range
+
 1.1.4:
 Copy reference of circuit connections
 
