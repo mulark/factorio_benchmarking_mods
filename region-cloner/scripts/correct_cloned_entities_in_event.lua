@@ -70,11 +70,43 @@ function copy_circuit_network_reference_connections (original_entity, cloned_ent
             targetnewent = nil
         end
     end
+    if (original_entity.type == "electric-pole") then
+        if (original_entity.neighbours.copper) then
+            for x=1, #original_entity.neighbours.copper do
+                local targetent = original_entity.neighbours.copper[x]
+                local offset_x = (original_entity.position.x - targetent.position.x)
+                local offset_y = (original_entity.position.y - targetent.position.y)
+                local targetnewent = cloned_entity.surface.find_entity(targetent.name, {(cloned_entity.position.x - offset_x), (cloned_entity.position.y - offset_y)})
+                if (targetnewent) then
+                    local cloned_entity_original_position = cloned_entity.position
+                    cloned_entity.teleport(targetnewent.position)
+                    cloned_entity.connect_neighbour(targetnewent)
+                    cloned_entity.teleport(cloned_entity_original_position)
+                end
+            end
+        end
+    end
+end
+
+function flip_rolling_stock_if_needed (original_entity, cloned_entity)
+    if has_value(original_entity.type, ROLLING_STOCK_TYPES) then
+        if not (original_entity.orientation == cloned_entity.orientation) then
+            cloned_entity.disconnect_rolling_stock(defines.rail_direction.front)
+            cloned_entity.disconnect_rolling_stock(defines.rail_direction.back)
+            cloned_entity.rotate()
+            cloned_entity.connect_rolling_stock(defines.rail_direction.front)
+            cloned_entity.connect_rolling_stock(defines.rail_direction.back)
+        end
+        --[[We don't know which way we are connected, and we can't be sure that the other rolling stock have been cloned yet]]
+        --[[The only edge case we could handle now is the one where we are both the front and back of this train IE: this train is 1 rolling stock long]]
+        cloned_entity.train.manual_mode = original_entity.train.manual_mode
+    end
 end
 
 script.on_event(defines.events.on_entity_cloned, function(event)
     if (event.source.valid and event.destination.valid) then
         copy_signals_in_flight(event.source, event.destination)
         copy_circuit_network_reference_connections(event.source, event.destination)
+        flip_rolling_stock_if_needed(event.source, event.destination)
     end
 end)

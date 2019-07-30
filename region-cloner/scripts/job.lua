@@ -74,17 +74,14 @@ function job_create(player)
     job.force = player.force
     job.ticks_per_paste = 0
     job.bounding_box = get_region_bounding_box(player)
-    local blacklisted_entity_pool = player.surface.find_entities_filtered{area=job.bounding_box, force="player", type=BLACKLISTED_ENTITY_TYPES_FROM_NEW_CLONE_METHODS}
     local temp_ent_pool = player.surface.find_entities_filtered{area=job.bounding_box, type=BLACKLISTED_ENTITY_TYPES_FROM_NEW_CLONE_METHODS, invert=true}
     local gui_dropdown_index = frame_flow["region-cloner_control-window"]["region-cloner_drop_down_table"]["region-cloner_direction-to-copy"].selected_index
     job.tiles_to_paste_x, job.tiles_to_paste_y = convert_box_to_offsets(gui_dropdown_index, job.bounding_box)
     job.tiles_to_paste_x, job.tiles_to_paste_y = clean_entity_pool(temp_ent_pool, job.tiles_to_paste_x, job.tiles_to_paste_y)
     job.entity_pool = temp_ent_pool
-    job.blacklisted_entity_pool = blacklisted_entity_pool
     job.times_to_paste = tonumber(mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_drop_down_table"]["number_of_copies"].text)
     job.current_paste = 1
     job.flag_complete = false
-    job.cancel_button_name = "region-cloner_" .. job.player.name .. "_job" .. "_cancel_button"
     local advanced_settings_gui = frame_flow[GUI_ELEMENT_PREFIX .. "advanced_view_pane"]
     local tile_paste_override_table = advanced_settings_gui[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_override_table"]
     job.clean_paste_area_flag = true

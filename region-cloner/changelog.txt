@@ -1,5 +1,8 @@
+1.1.6:
+Rework train cloning to fix them in on_entity_cloned. This fixes the vanilla clone as well. As well as fixing teleported power poles since they're handled a little bit differently.
+
 1.1.5:
-Connect clone circuit connections even if the source entities have been teleported outside the normal connection range
+Connect cloned circuit connections even if the source entities have been teleported outside the normal connection range
 
 1.1.4:
 Copy reference of circuit connections

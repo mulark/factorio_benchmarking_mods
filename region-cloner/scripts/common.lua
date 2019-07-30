@@ -5,14 +5,6 @@ global.combinators_to_destroy_in_next_tick = {}
 --[[Ghosts will break script as it exists currently. Copying the player is annoying and only serves to clutter the map. Adding character for 0.17.35+ support]]
 ENTITIES_TO_NOT_CLONE = {"player", "character", "entity-ghost", "tile-ghost"}
 
-
---[[These types have defines.inventory.chest return their fuel slot, which mean we double copy their fuel]]
---[[Only locomotive is actually needed anymore]]
-HAS_DEFINES_INVENTORY_CHEST_BUT_SHOULDNT_TYPES = {"locomotive", "car", "beacon"}
-
---[[Presently copying rolling stock with clone_entities{} flips the direction of trains and doesn't copy the manual_mode.]]
-BLACKLISTED_ENTITY_TYPES_FROM_NEW_CLONE_METHODS = {"locomotive", "cargo-wagon", "straight-rail", "curved-rail", "fluid-wagon", "artillery-wagon"}
-
 ROLLING_STOCK_TYPES = {"locomotive", "cargo-wagon", "fluid-wagon", "artillery-wagon"}
 
 debug_logging = false

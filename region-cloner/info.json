@@ -1,11 +1,11 @@
 {
   "name": "region-cloner",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "title": "Region Cloner",
   "author": "mulark",
   "contact": "",
   "homepage": "mulark.github.io/my_mods.html#region-cloner",
-  "description": "Clones entire regions of the map including cars and trains, for benchmaking purposes. Copies inventory contents, train schedules, circuit networks, and more!",
+  "description": "Clones entire regions of the map including cars and trains, for benchmaking purposes. Copies inventory contents, train schedules, circuit networks, and more! Also fixes the editor cloning for some cases.",
   "factorio_version": "0.17",
   "dependencies": []
 }

@@ -1,6 +1,7 @@
 require("scripts.cloner")
 require("scripts.common")
 require("scripts.job")
+require("scripts.correct_cloned_entities_in_event")
 
 function decode_direction_for_unusual_collision_box(direction, type)
     local offset_left, offset_top, offset_right, offset_bottom = 4, 4, 4, 4
@@ -241,8 +242,6 @@ function issue_copy_paste(player)
     end
     for x=1, job.times_to_paste do
         clear_paste_area(job.tiles_to_paste_x, job.tiles_to_paste_y, x, job.bounding_box, forces_to_clear_paste_area, job.surface, job.entity_pool)
-        validate_entity_pool(job.blacklisted_entity_pool)
-        copy_blacklisted_entity_pool(job.player, job.blacklisted_entity_pool, {x = job.tiles_to_paste_x * x, y = job.tiles_to_paste_y * x}, job.surface, job.force)
         validate_entity_pool(job.entity_pool)
         copy_entity_pool(job.player, job.entity_pool, {x = job.tiles_to_paste_x * x, y = job.tiles_to_paste_y * x}, job.surface, job.force)
     end
