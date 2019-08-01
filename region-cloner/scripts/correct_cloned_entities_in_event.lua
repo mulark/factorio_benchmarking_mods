@@ -55,9 +55,6 @@ function copy_circuit_network_reference_connections (original_entity, cloned_ent
                 local targetent = original_entity.circuit_connection_definitions[x].target_entity
                 local offset_x = (original_entity.position.x - targetent.position.x)
                 local offset_y = (original_entity.position.y - targetent.position.y)
-                if original_entity.type == "electric-pole" then
-                    game.print(offset_x .. ", " .. offset_y .. " " .. targetent.name)
-                end
                 local targetnewent = cloned_entity.surface.find_entity(targetent.name, {(cloned_entity.position.x - offset_x), (cloned_entity.position.y - offset_y)})
                 if (targetnewent) then
                     local connection_formed = cloned_entity.connect_neighbour({target_entity = targetnewent, wire=original_entity.circuit_connection_definitions[x].wire, source_circuit_id=original_entity.circuit_connection_definitions[x].source_circuit_id, target_circuit_id=original_entity.circuit_connection_definitions[x].target_circuit_id})
