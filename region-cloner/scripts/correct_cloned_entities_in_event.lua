@@ -49,25 +49,31 @@ end
 
 function copy_circuit_network_reference_connections (original_entity, cloned_entity)
     if (original_entity.circuit_connection_definitions) then
-        for x=1, #original_entity.circuit_connection_definitions do
-            local targetent = original_entity.circuit_connection_definitions[x].target_entity
-            local offset_x = (original_entity.position.x - targetent.position.x)
-            local offset_y = (original_entity.position.y - targetent.position.y)
-            local targetnewent = cloned_entity.surface.find_entity(targetent.name, {(cloned_entity.position.x - offset_x), (cloned_entity.position.y - offset_y)})
-            if (targetnewent) then
-                local connection_formed = cloned_entity.connect_neighbour({target_entity = targetnewent, wire=original_entity.circuit_connection_definitions[x].wire, source_circuit_id=original_entity.circuit_connection_definitions[x].source_circuit_id, target_circuit_id=original_entity.circuit_connection_definitions[x].target_circuit_id})
-                if not (connection_formed) then
-                    --[[Possibly these were too far apart, you can make them connected but far apart with teleporting]]
-                    local cloned_entity_original_position = cloned_entity.position
-                    cloned_entity.teleport(targetnewent.position)
-                    cloned_entity.connect_neighbour({target_entity = targetnewent, wire=original_entity.circuit_connection_definitions[x].wire, source_circuit_id=original_entity.circuit_connection_definitions[x].source_circuit_id, target_circuit_id=original_entity.circuit_connection_definitions[x].target_circuit_id})
-                    cloned_entity.teleport(cloned_entity_original_position)
+        --[[Add 50 arbitrary connections as when we do this action the number of circuit_connection_definitions is likely to change. In practice only 2 will be needed for 99.99% of cases]]
+        for x=1, (#original_entity.circuit_connection_definitions + 50) do
+            if (original_entity.circuit_connection_definitions[x]) then
+                local targetent = original_entity.circuit_connection_definitions[x].target_entity
+                local offset_x = (original_entity.position.x - targetent.position.x)
+                local offset_y = (original_entity.position.y - targetent.position.y)
+                if original_entity.type == "electric-pole" then
+                    game.print(offset_x .. ", " .. offset_y .. " " .. targetent.name)
                 end
+                local targetnewent = cloned_entity.surface.find_entity(targetent.name, {(cloned_entity.position.x - offset_x), (cloned_entity.position.y - offset_y)})
+                if (targetnewent) then
+                    local connection_formed = cloned_entity.connect_neighbour({target_entity = targetnewent, wire=original_entity.circuit_connection_definitions[x].wire, source_circuit_id=original_entity.circuit_connection_definitions[x].source_circuit_id, target_circuit_id=original_entity.circuit_connection_definitions[x].target_circuit_id})
+                    if not (connection_formed) then
+                        --[[Possibly these were too far apart, you can make them connected but far apart with teleporting]]
+                        local cloned_entity_original_position = cloned_entity.position
+                        cloned_entity.teleport(targetnewent.position)
+                        cloned_entity.connect_neighbour({target_entity = targetnewent, wire=original_entity.circuit_connection_definitions[x].wire, source_circuit_id=original_entity.circuit_connection_definitions[x].source_circuit_id, target_circuit_id=original_entity.circuit_connection_definitions[x].target_circuit_id})
+                        cloned_entity.teleport(cloned_entity_original_position)
+                    end
+                end
+                targetent = nil
+                offset_x = nil
+                offset_y = nil
+                targetnewent = nil
             end
-            targetent = nil
-            offset_x = nil
-            offset_y = nil
-            targetnewent = nil
         end
     end
     if (original_entity.type == "electric-pole") then

@@ -258,18 +258,20 @@ end
 
 function do_on_tick()
     script.on_event(defines.events.on_tick, function(event)
-        if not next (global.combinators_to_destroy_in_next_tick) then
-            global.do_on_tick = false
-            script.on_event(defines.events.on_tick, nil)
-        end
-        for key,ent in pairs(global.combinators_to_destroy_in_next_tick) do
-            if not (ent.valid()) then
-                global.combinators_to_destroy_in_next_tick[key] = nil
-            else
-                local signals = ent.get_circuit_network(defines.wire_type.red).signals
-                if (signals) then
-                    ent.destroy()
+        if (global.combinators_to_destroy_in_next_tick) then
+            if not next (global.combinators_to_destroy_in_next_tick) then
+                global.do_on_tick = false
+                script.on_event(defines.events.on_tick, nil)
+            end
+            for key,ent in pairs(global.combinators_to_destroy_in_next_tick) do
+                if not (ent.valid()) then
                     global.combinators_to_destroy_in_next_tick[key] = nil
+                else
+                    local signals = ent.get_circuit_network(defines.wire_type.red).signals
+                    if (signals) then
+                        ent.destroy()
+                        global.combinators_to_destroy_in_next_tick[key] = nil
+                    end
                 end
             end
         end

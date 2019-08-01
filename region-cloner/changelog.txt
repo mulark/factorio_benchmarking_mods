@@ -1,3 +1,6 @@
+1.1.7:
+Fixed copying combinators, fixed copying wire references in an edge case.
+
 1.1.6:
 Rework train cloning to fix them in on_entity_cloned. This fixes the vanilla clone as well. As well as fixing teleported power poles since they're handled a little bit differently.
 
