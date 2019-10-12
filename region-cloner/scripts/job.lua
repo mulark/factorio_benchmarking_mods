@@ -21,7 +21,7 @@ local function correct_for_rail_grid(tile_paste_length)
     return tile_paste_length
 end
 
-local function clean_entity_pool(entity_pool, tiles_to_paste_x, tiles_to_paste_y)
+local function clean_entity_pool_and_selectively_correct_tile_paste_length_for_rail_grid(entity_pool, tiles_to_paste_x, tiles_to_paste_y, custom_tile_paste_flag, player)
     local flag_rail_found = false
     for key, ent in pairs(entity_pool) do
         if has_value(ent.type, {"straight-rail", "curved-rail"}) then
@@ -32,11 +32,21 @@ local function clean_entity_pool(entity_pool, tiles_to_paste_x, tiles_to_paste_y
         end
     end
     if (flag_rail_found) then
-        if (tiles_to_paste_x ~= 0) then
-            tiles_to_paste_x = correct_for_rail_grid(tiles_to_paste_x)
+        if (tiles_to_paste_x ~= 0 or tiles_to_paste_x % 2 ~= 0) then
+            if (custom_tile_paste_flag == true) then
+                player.print("You selected an odd number custom tile paste offset, but included rails in your selection.")
+                player.print("This means you are cloning off the rail grid (unless using diagonals only), which can cause a big performance hit.")
+            else
+                tiles_to_paste_x = correct_for_rail_grid(tiles_to_paste_x)
+            end
         end
-        if (tiles_to_paste_y ~= 0) then
-            tiles_to_paste_y = correct_for_rail_grid(tiles_to_paste_y)
+        if (tiles_to_paste_y ~= 0 or tiles_to_paste_y % 2 ~= 0) then
+            if (custom_tile_paste_flag == true) then
+                player.print("You selected an odd number custom tile paste offset, but included rails in your selection.")
+                player.print("This means you are cloning off the rail grid (unless using diagonals only), which can cause a big performance hit.")
+            else
+                tiles_to_paste_y = correct_for_rail_grid(tiles_to_paste_y)
+            end
         end
     end
     return tiles_to_paste_x, tiles_to_paste_y
@@ -72,22 +82,19 @@ function job_create(player)
     job.player = player
     job.surface = player.surface
     job.force = player.force
-    job.ticks_per_paste = 0
     job.bounding_box = get_region_bounding_box(player)
-    local temp_ent_pool = player.surface.find_entities_filtered{area=job.bounding_box, type=BLACKLISTED_ENTITY_TYPES_FROM_NEW_CLONE_METHODS, invert=true}
-    local gui_dropdown_index = frame_flow["region-cloner_control-window"]["region-cloner_drop_down_table"]["region-cloner_direction-to-copy"].selected_index
-    job.tiles_to_paste_x, job.tiles_to_paste_y = convert_box_to_offsets(gui_dropdown_index, job.bounding_box)
-    job.tiles_to_paste_x, job.tiles_to_paste_y = clean_entity_pool(temp_ent_pool, job.tiles_to_paste_x, job.tiles_to_paste_y)
-    job.entity_pool = temp_ent_pool
-    job.times_to_paste = tonumber(mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_drop_down_table"]["number_of_copies"].text)
-    job.current_paste = 1
-    job.flag_complete = false
     local advanced_settings_gui = frame_flow[GUI_ELEMENT_PREFIX .. "advanced_view_pane"]
     local tile_paste_override_table = advanced_settings_gui[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_override_table"]
-    job.clean_paste_area_flag = true
     local custom_tile_paste_length_flag = tile_paste_override_table[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_override_checkbox"].state
     job.custom_tile_paste_length_flag = custom_tile_paste_length_flag
-    if (custom_tile_paste_length_flag) then
+    local temp_ent_pool = player.surface.find_entities_filtered{area=job.bounding_box}
+    local gui_dropdown_index = frame_flow["region-cloner_control-window"]["region-cloner_drop_down_table"]["region-cloner_direction-to-copy"].selected_index
+    job.tiles_to_paste_x, job.tiles_to_paste_y = convert_box_to_offsets(gui_dropdown_index, job.bounding_box)
+    job.tiles_to_paste_x, job.tiles_to_paste_y = clean_entity_pool_and_selectively_correct_tile_paste_length_for_rail_grid(temp_ent_pool, job.tiles_to_paste_x, job.tiles_to_paste_y, job.custom_tile_paste_length_flag, job.player)
+    job.entity_pool = temp_ent_pool
+    job.times_to_paste = tonumber(mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_drop_down_table"]["number_of_copies"].text)
+
+    if (job.custom_tile_paste_length_flag) then
         job.tiles_to_paste_x = tonumber(tile_paste_override_table[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_x"].text)
         job.tiles_to_paste_y = tonumber(tile_paste_override_table[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_y"].text)
     end

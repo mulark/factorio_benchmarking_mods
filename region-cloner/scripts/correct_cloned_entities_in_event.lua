@@ -12,18 +12,11 @@ function copy_signals_in_flight(original_entity, cloned_entity)
     if not (signals_to_copy) then
         return
     end
-    local num_signals = 0
-    for _,__ in pairs (signals_to_copy) do
-        num_signals = num_signals + 1
-    end
-    local combinators_needed = math.ceil(num_signals/18)
+    --Each combinator can hold max 18 signals at once.
+    local combinators_needed = math.ceil(#signals_to_copy/18)
     local current_sig_index = 1
     for x=1, combinators_needed do
         local flag_next_combinator = false
-        local count = 0
-        for key, sig in pairs(signals_to_copy) do
-            count = count + 1
-        end
         local combinator = cloned_entity.surface.create_entity{name="constant-combinator", force=cloned_entity.force, position=cloned_entity.position}
         combinator.connect_neighbour({wire=defines.wire_type.red, target_entity=cloned_entity, target_circuit_id=defines.circuit_connector_id.combinator_output})
         combinator.connect_neighbour({wire=defines.wire_type.green, target_entity=cloned_entity, target_circuit_id=defines.circuit_connector_id.combinator_output})
@@ -47,9 +40,9 @@ function copy_signals_in_flight(original_entity, cloned_entity)
     end
 end
 
-function copy_circuit_network_reference_connections (original_entity, cloned_entity)
+function copy_circuit_network_reference_connections(original_entity, cloned_entity)
     if (original_entity.circuit_connection_definitions) then
-        --[[Add 50 arbitrary connections as when we do this action the number of circuit_connection_definitions is likely to change. In practice only 2 will be needed for 99.99% of cases]]
+        --[[Add 50 arbitrary connections as when we do this action the number of circuit_connection_definitions can change. In practice only 2 will be needed for 99.99% of cases]]
         for x=1, (#original_entity.circuit_connection_definitions + 50) do
             if (original_entity.circuit_connection_definitions[x]) then
                 local targetent = original_entity.circuit_connection_definitions[x].target_entity
@@ -73,10 +66,14 @@ function copy_circuit_network_reference_connections (original_entity, cloned_ent
             end
         end
     end
-    if (original_entity.type == "electric-pole") then
+    if has_value(original_entity.type, {"electric-pole", "power-switch"}) then
         if (original_entity.neighbours.copper) then
             for x=1, #original_entity.neighbours.copper do
                 local targetent = original_entity.neighbours.copper[x]
+                if (targetent.type ~= "electic-pole") then
+                    --technically this is unnecessary cause you can't connect two power switches together with copper
+                    return
+                end
                 local offset_x = (original_entity.position.x - targetent.position.x)
                 local offset_y = (original_entity.position.y - targetent.position.y)
                 local targetnewent = cloned_entity.surface.find_entity(targetent.name, {(cloned_entity.position.x - offset_x), (cloned_entity.position.y - offset_y)})
@@ -91,7 +88,7 @@ function copy_circuit_network_reference_connections (original_entity, cloned_ent
     end
 end
 
-function flip_rolling_stock_if_needed (original_entity, cloned_entity)
+function flip_rolling_stock_if_needed(original_entity, cloned_entity)
     if has_value(original_entity.type, ROLLING_STOCK_TYPES) then
         if not (original_entity.orientation == cloned_entity.orientation) then
             cloned_entity.disconnect_rolling_stock(defines.rail_direction.front)

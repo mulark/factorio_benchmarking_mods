@@ -29,9 +29,9 @@ gui.create_gui = function (player)
     advanced_tile_paste_lengths_table.add{type="label"}
     advanced_tile_paste_lengths_table.add{type="label", caption="Tiles to paste X"}
     advanced_tile_paste_lengths_table.add{type="label", caption="Tiles to paste Y"}
-    advanced_tile_paste_lengths_table.add{type="checkbox", state=false, name = GUI_ELEMENT_PREFIX .. "advanced_tile_paste_override_checkbox", tooltip="Overrides the tile paste length from being calculated using the bounding box. Useful if you want to partially overlap paste areas. Strongly reccomended to not clear paste area at the same time. Overrides Direction to copy.", caption="Tile paste override"}
-    advanced_tile_paste_lengths_table.add{name=GUI_ELEMENT_PREFIX .. "advanced_tile_paste_x", type="textfield", text="0"}
-    advanced_tile_paste_lengths_table.add{name=GUI_ELEMENT_PREFIX .. "advanced_tile_paste_y", type="textfield", text="0"}
+    advanced_tile_paste_lengths_table.add{type="checkbox", state=false, name = GUI_ELEMENT_PREFIX .. "advanced_tile_paste_override_checkbox", tooltip="Overrides the tile paste length from being calculated using the bounding box. Useful if you want to partially overlap paste areas. Strongly reccomended to not clear paste area at the same time. Overrides Direction to copy. Allows bad or unusual values so use with care.", caption="Tile paste override"}
+    advanced_tile_paste_lengths_table.add{name=GUI_ELEMENT_PREFIX .. "advanced_tile_paste_x", type="textfield", text="0", numeric=true, allow_decimal=true, allow_negative=true}
+    advanced_tile_paste_lengths_table.add{name=GUI_ELEMENT_PREFIX .. "advanced_tile_paste_y", type="textfield", text="0", numeric=true, allow_decimal=true, allow_negative=true}
 
     local clear_paste_area_table = advanced_settings_gui.add{type="table", column_count=3, name=GUI_ELEMENT_PREFIX .. "advanced_clear_paste_area_table"}
     clear_paste_area_table.add{type="label", caption="Clear paste area:", tooltip="Look for entities in the area about to be pasted into and delete them. If you don't clear normal entities it's likely that you'll stack mutiple on one tile, so be careful! Defaults to true."}
@@ -42,17 +42,17 @@ gui.create_gui = function (player)
     mod_frame.visible = false
     local coord_gui_table = mod_frame.add{type="table", column_count=3, name=GUI_ELEMENT_PREFIX .. "coordinate-table"}
         coord_gui_table.add{type="label", name="left_top_description", caption="Left_top", tooltip="The top left corner coordinate of the region you wish to copy"}
-        coord_gui_table.add{type="textfield", name="left_top_x", text="0"}
-        coord_gui_table.add{type="textfield", name="left_top_y", text="0"}
+        coord_gui_table.add{type="textfield", name="left_top_x", text="0", numeric=true, allow_negative=true}
+        coord_gui_table.add{type="textfield", name="left_top_y", text="0", numeric=true, allow_negative=true}
         coord_gui_table.add{type="label", name="right_bottom_description", caption="Right_bottom", tooltip="The bottom right corner coordinate of the region you wish to copy"}
-        coord_gui_table.add{type="textfield", name="right_bottom_x", text="0"}
-        coord_gui_table.add{type="textfield", name="right_bottom_y", text="0"}
+        coord_gui_table.add{type="textfield", name="right_bottom_x", text="0", numeric=true, allow_negative=true}
+        coord_gui_table.add{type="textfield", name="right_bottom_y", text="0", numeric=true, allow_negative=true}
 
     local drop_down_table = mod_frame.add{type="table", column_count=4, name=GUI_ELEMENT_PREFIX .. "drop_down_table"}
-        drop_down_table.add{type="label", caption="Direction to copy:"}
+        drop_down_table.add{type="label", caption="Direction to copy:", tooltop="The direction pastes will be executed in. Use a custom tile paste override if you need finer control."}
         drop_down_table.add{type="drop-down", items={"North","East","South","West"}, selected_index=1, name = GUI_ELEMENT_PREFIX .. "direction-to-copy"}
         drop_down_table.add{type="label", caption="Number of copies:", tooltip="How many copies of the area above will be made. Note that you will end up with 1 more copy than the number selected here (the original area)"}
-        drop_down_table.add{type="textfield", name="number_of_copies", text=1}
+        drop_down_table.add{type="textfield", name="number_of_copies", text=1, numeric=true}
         drop_down_table["number_of_copies"].style.left_padding = 8
         drop_down_table["number_of_copies"].style.right_padding = 8
         drop_down_table["number_of_copies"].style.horizontal_align = "right"

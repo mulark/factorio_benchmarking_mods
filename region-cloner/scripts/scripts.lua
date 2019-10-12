@@ -53,6 +53,7 @@ end
 
 function restrict_selection_area_to_entities(left, top, right, bottom, player)
     local first_ent = true
+    --secondary_collision_box now exists, this can be done better.
     local problematic_collision_box_entity_types = {"curved-rail"}
     local new_left, new_right, new_top, new_bottom = 0
     left, right = swap_to_fix_pairs(left, right)
@@ -91,7 +92,7 @@ function restrict_selection_area_to_entities(left, top, right, bottom, player)
         end
     end
     if not (new_left and new_top and new_right and new_bottom) then
-        player.print("No player entites were found in the selection area, could not reduce selection area!")
+        player.print("No player entites were found in the selection area, could not shrink the selection area!")
         return left, top, right, bottom
     end
     return new_left, new_top, new_right, new_bottom
@@ -119,6 +120,7 @@ function validate_coordinates_and_update_view(player, restrict_area_bool)
         current_view["right_bottom_y"].text = new_bottom
         return true
     else
+        --No longer needed with numeric text field GUIs
         player.print("A coordinate is not a number!")
         return false
     end
@@ -134,11 +136,11 @@ function validate_player_copy_paste_settings(player)
     local times_to_paste = tonumber(top_gui["region-cloner_drop_down_table"]["number_of_copies"].text)
     if (times_to_paste) then
         if (times_to_paste < 1) then
-            player.print("Times to paste is less than 1!")
+            player.print("Number of copies is less than 1!")
             return false
         end
     else
-        player.print("Times to paste is not a number!")
+        player.print("Number of copies is not a number!")
         return false
     end
     if not (direction_to_copy) then
@@ -146,8 +148,10 @@ function validate_player_copy_paste_settings(player)
     end
     local advanced_settings_gui = frame_flow[GUI_ELEMENT_PREFIX .. "advanced_view_pane"]
     local custom_tile_paste_length_table = advanced_settings_gui[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_override_table"]
-    if (custom_tile_paste_length_table[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_override_checkbox"].state) then
-        --[[Only validate custom tile paste lengths if the box is checked]]
+    if (custom_tile_paste_length_table[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_override_checkbox"].state == true) then
+        --[[
+        We don't care what these are if the box is not checked
+        ]]
         local tiles_to_paste_x = tonumber(custom_tile_paste_length_table[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_x"].text)
         local tiles_to_paste_y = tonumber(custom_tile_paste_length_table[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_y"].text)
         if (tiles_to_paste_x and tiles_to_paste_y) then
@@ -155,9 +159,6 @@ function validate_player_copy_paste_settings(player)
                 player.print("You selected custom tile paste lengths but they're both 0!")
                 return false
             end
-        else
-            player.print("Your custom tile paste length(s) are not a number!")
-            return false
         end
     end
     return true
@@ -208,12 +209,15 @@ local function clear_paste_area(tpx, tpy, current_paste, bounding_box, forces_to
     for _, ent in pairs(possible_entities_to_destroy) do
         if (ent.valid) then
             --[[Make sure we check valid ents because if you destroy a rocket silo with a rocket theres a chance that the rocket itself becomes invalid.]]
-            ent.clear_items_inside()
-            if not (ent.can_be_destroyed()) then
-                --[[Tracks with a train on them can't be destroyed, save them and try again at the end]]
-                table.insert(second_try_destroy_entities, ent)
+            if not has_value(ent.name, ENTITIES_TO_NOT_CLONE) then
+                --[[Not sure why clear_items_inside() is needed anymore if it is? Maybe had something to do with items on a belt or performance reasons?]]
+                ent.clear_items_inside()
+                if not (ent.can_be_destroyed()) then
+                    --[[Tracks with a train on them can't be destroyed, save them and try again at the end]]
+                    table.insert(second_try_destroy_entities, ent)
+                end
+                ent.destroy()
             end
-            ent.destroy()
         end
     end
 end
@@ -259,12 +263,12 @@ end
 function do_on_tick()
     script.on_event(defines.events.on_tick, function(event)
         if (global.combinators_to_destroy_in_next_tick) then
-            if not next (global.combinators_to_destroy_in_next_tick) then
+            if not next(global.combinators_to_destroy_in_next_tick) then
                 global.do_on_tick = false
                 script.on_event(defines.events.on_tick, nil)
             end
             for key,ent in pairs(global.combinators_to_destroy_in_next_tick) do
-                if not (ent.valid()) then
+                if not (ent.valid) then
                     global.combinators_to_destroy_in_next_tick[key] = nil
                 else
                     local signals = ent.get_circuit_network(defines.wire_type.red).signals
