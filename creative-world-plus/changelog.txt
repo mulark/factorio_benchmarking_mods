@@ -1,3 +1,6 @@
+0.0.9:
+Added some 0.17 tile types.
+
 0.0.8:
 Corrected preset to handle cliffs after updates.
 
