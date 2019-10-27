@@ -27,23 +27,23 @@ local function clean_entity_pool_and_selectively_correct_tile_paste_length_for_r
         if has_value(ent.type, {"straight-rail", "curved-rail"}) then
             flag_rail_found = true
         end
-        if has_value(ent.type, ENTITIES_TO_NOT_CLONE) then
+        if is_ignored_entity_type(ent.type) then
             entity_pool[key] = nil
         end
     end
     if (flag_rail_found) then
-        if (tiles_to_paste_x ~= 0 or tiles_to_paste_x % 2 ~= 0) then
-            if (custom_tile_paste_flag == true) then
-                player.print("You selected an odd number custom tile paste offset, but included rails in your selection.")
-                player.print("This means you are cloning off the rail grid (unless using diagonals only), which can cause a big performance hit.")
+        if (tiles_to_paste_x ~= 0) then
+            if (custom_tile_paste_flag == true and (tiles_to_paste_x % 2) ~= 0) then
+                player.print("You selected an odd number x custom tile paste offset, but included rails in your selection.")
+                player.print("This means you are cloning off the rail grid, which can cause a big performance hit.")
             else
                 tiles_to_paste_x = correct_for_rail_grid(tiles_to_paste_x)
             end
         end
-        if (tiles_to_paste_y ~= 0 or tiles_to_paste_y % 2 ~= 0) then
-            if (custom_tile_paste_flag == true) then
-                player.print("You selected an odd number custom tile paste offset, but included rails in your selection.")
-                player.print("This means you are cloning off the rail grid (unless using diagonals only), which can cause a big performance hit.")
+        if (tiles_to_paste_y ~= 0) then
+            if (custom_tile_paste_flag == true and (tiles_to_paste_y % 2) ~= 0) then
+                player.print("You selected an odd number y custom tile paste offset, but included rails in your selection.")
+                player.print("This means you are cloning off the rail grid, which can cause a big performance hit.")
             else
                 tiles_to_paste_y = correct_for_rail_grid(tiles_to_paste_y)
             end
@@ -89,15 +89,18 @@ function job_create(player)
     job.custom_tile_paste_length_flag = custom_tile_paste_length_flag
     local temp_ent_pool = player.surface.find_entities_filtered{area=job.bounding_box}
     local gui_dropdown_index = frame_flow["region-cloner_control-window"]["region-cloner_drop_down_table"]["region-cloner_direction-to-copy"].selected_index
-    job.tiles_to_paste_x, job.tiles_to_paste_y = convert_box_to_offsets(gui_dropdown_index, job.bounding_box)
-    job.tiles_to_paste_x, job.tiles_to_paste_y = clean_entity_pool_and_selectively_correct_tile_paste_length_for_rail_grid(temp_ent_pool, job.tiles_to_paste_x, job.tiles_to_paste_y, job.custom_tile_paste_length_flag, job.player)
     job.entity_pool = temp_ent_pool
     job.times_to_paste = tonumber(mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_drop_down_table"]["number_of_copies"].text)
 
     if (job.custom_tile_paste_length_flag) then
         job.tiles_to_paste_x = tonumber(tile_paste_override_table[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_x"].text)
         job.tiles_to_paste_y = tonumber(tile_paste_override_table[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_y"].text)
+        job.tiles_to_paste_x, job.tiles_to_paste_y = clean_entity_pool_and_selectively_correct_tile_paste_length_for_rail_grid(temp_ent_pool, job.tiles_to_paste_x, job.tiles_to_paste_y, job.custom_tile_paste_length_flag, job.player)
+    else
+        job.tiles_to_paste_x, job.tiles_to_paste_y = convert_box_to_offsets(gui_dropdown_index, job.bounding_box)
+        job.tiles_to_paste_x, job.tiles_to_paste_y = clean_entity_pool_and_selectively_correct_tile_paste_length_for_rail_grid(temp_ent_pool, job.tiles_to_paste_x, job.tiles_to_paste_y, job.custom_tile_paste_length_flag, job.player)
     end
+
     local advanced_clear_paste_area_table = advanced_settings_gui[GUI_ELEMENT_PREFIX .. "advanced_clear_paste_area_table"]
     job.clear_normal_entities = advanced_clear_paste_area_table[GUI_ELEMENT_PREFIX .. "clear_normal_entities"].state
     job.clear_resource_entities = advanced_clear_paste_area_table[GUI_ELEMENT_PREFIX .. "clear_resource_entities"].state

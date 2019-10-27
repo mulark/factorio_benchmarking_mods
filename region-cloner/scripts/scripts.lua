@@ -59,7 +59,7 @@ function restrict_selection_area_to_entities(left, top, right, bottom, player)
     left, right = swap_to_fix_pairs(left, right)
     top, bottom = swap_to_fix_pairs(top, bottom)
     for _, ent in pairs(player.surface.find_entities_filtered{area={{left, top},{right,bottom}}, force="player"}) do
-        if not has_value(ent.type, ENTITIES_TO_NOT_CLONE) then
+        if not is_ignored_entity_type(ent.type) then
             local unusual_collision_box_factor_left, unusual_collision_box_factor_top, unusual_collision_box_factor_right, unusual_collision_box_factor_bottom = 0, 0, 0, 0
             local ltx, lty, rbx, rby = convert_entity_collision_box_to_rotated_aware(ent)
             if has_value(ent.type, problematic_collision_box_entity_types) then
@@ -211,13 +211,20 @@ local function clear_paste_area(tpx, tpy, current_paste, bounding_box, forces_to
     for _, ent in pairs(possible_entities_to_destroy) do
         if (ent.valid) then
             --[[Make sure we check valid ents because if you destroy a rocket silo with a rocket theres a chance that the rocket itself becomes invalid.]]
-            if not has_value(ent.name, ENTITIES_TO_NOT_CLONE) then
+            if not is_ignored_entity_type(ent.type) then
                 --[[Not sure why clear_items_inside() is needed anymore if it is? Maybe had something to do with items on a belt or performance reasons?]]
                 ent.clear_items_inside()
                 if not (ent.can_be_destroyed()) then
                     --[[Tracks with a train on them can't be destroyed, save them and try again at the end]]
                     table.insert(second_try_destroy_entities, ent)
                 end
+                ent.destroy()
+            end
+        end
+    end
+    for _, ent in pairs(second_try_destroy_entities) do
+        if (ent.valid) then
+            if not is_ignored_entity_type(ent.type) then
                 ent.destroy()
             end
         end
@@ -253,7 +260,7 @@ function issue_copy_paste(player)
     end
     --[[Set power of original entity pool combinators to 0 to delay them by 1 tick.]]
     for _,ent in pairs(job.entity_pool) do
-        if has_value(ent.type, {"decider-combinator", "arithmetic-combinator"}) then
+        if is_nonconst_combinator(ent.type) then
             ent.energy = 0
         end
     end

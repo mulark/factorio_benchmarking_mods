@@ -1,3 +1,6 @@
+1.1.11:
+Further optimizations resulting in 60% reduction to cloning time. A couple bugfixes: removing incorrect warning print cases and better destroying of rails.
+
 1.1.10:
 80% reduction in cloning time when cloning over existing an existing paste.
 

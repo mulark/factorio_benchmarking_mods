@@ -2,14 +2,10 @@ GUI_ELEMENT_PREFIX = "region-cloner_"
 
 global.combinators_to_destroy_in_next_tick = {}
 
---[[Ghosts will break script as it exists currently. Copying the player is annoying and only serves to clutter the map. Adding character for 0.17.35+ support]]
-ENTITIES_TO_NOT_CLONE = {"player", "character", "entity-ghost", "tile-ghost"}
-
-ROLLING_STOCK_TYPES = {"locomotive", "cargo-wagon", "fluid-wagon", "artillery-wagon"}
-
 debug_logging = false
 
 function has_value(val, tab)
+    --Slow path for non-critical comparisons.
     for index, value in ipairs(tab) do
         if value == val then
             return true
@@ -50,4 +46,64 @@ function swap_to_fix_pairs(negative_most, positive_most)
         return negative_most, positive_most
     end
     return positive_most, negative_most
+end
+
+--ROLLING_STOCK_TYPES = {"locomotive", "cargo-wagon", "fluid-wagon", "artillery-wagon"}
+function is_rolling_stock(type)
+    if type == "locomotive" then return true end
+    if type == "cargo-wagon" then return true end
+    if type == "fluid-wagon" then return true end
+    if type == "artillery-wagon" then return true end
+    return false
+end
+
+--[[Ghosts will break script as it exists currently. Copying the player is annoying and only serves to clutter the map. Adding character for 0.17.35+ support]]
+--player no longer does anything, keeping it doesn't hurt anything though.
+--ENTITIES_TO_NOT_CLONE = {"player", "character", "entity-ghost", "tile-ghost"}
+function is_ignored_entity_type(type)
+    if type == "player" then return true end
+    if type == "character" then return true end
+    if type == "entity-ghost" then return true end
+    if type == "tile-ghost" then return true end
+    return false
+end
+
+--{"electric-pole", "power-switch"}
+function is_copper_cable_connectable(type)
+    if type == "electric-pole" then return true end
+    if type == "power-switch" then return true end
+    return false
+end
+
+--{"decider-combinator", "arithmetic-combinator"}
+function is_nonconst_combinator(type)
+    if type == "decider-combinator" then return true end
+    if type == "arithmetic-combinator" then return true end
+    return false
+end
+
+function is_circuit_network_connectable(type)
+    if type == "accumulator" then return true end
+    if type == "arithmetic-combinator" then return true end
+    if type == "constant-combinator" then return true end
+    if type == "container" then return true end
+    if type == "decider-combinator" then return true end
+    if type == "electric-pole" then return true end
+    if type == "infinity-container" then return true end
+    if type == "inserter" then return true end
+    if type == "lamp" then return true end
+    if type == "logistic-container" then return true end
+    if type == "mining-drill" then return true end
+    if type == "offshore-pump" then return true end
+    if type == "power-switch" then return true end
+    if type == "programmable-speaker" then return true end
+    if type == "pump" then return true end
+    if type == "rail-chain-signal" then return true end
+    if type == "rail-signal" then return true end
+    if type == "roboport" then return true end
+    if type == "storage-tank" then return true end
+    if type == "train-stop" then return true end
+    if type == "transport-belt" then return true end
+    if type == "wall" then return true end
+    return false
 end

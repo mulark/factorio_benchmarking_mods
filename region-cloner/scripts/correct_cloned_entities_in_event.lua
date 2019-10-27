@@ -3,9 +3,6 @@ require("scripts.common")
 --[[TODO Copy over the original with this method.]]
 
 function copy_signals_in_flight(original_entity, cloned_entity)
-    if not has_value(original_entity.type, {"decider-combinator", "arithmetic-combinator"}) then
-        return
-    end
     global.do_on_tick = true
     do_on_tick()
     local signals_to_copy = original_entity.get_control_behavior().signals_last_tick
@@ -42,8 +39,8 @@ end
 
 function copy_circuit_network_reference_connections(original_entity, cloned_entity)
     if (original_entity.circuit_connection_definitions) then
-        --[[Add 50 arbitrary connections as when we do this action the number of circuit_connection_definitions can change. In practice only 2 will be needed for 99.99% of cases]]
-        for x=1, (#original_entity.circuit_connection_definitions + 50) do
+        --[[Add 3 arbitrary connections as when we do this action the number of circuit_connection_definitions can change. In practice only 2 will be needed for 99.99% of cases]]
+        for x=1, (#original_entity.circuit_connection_definitions + 3) do
             if (original_entity.circuit_connection_definitions[x]) then
                 local targetent = original_entity.circuit_connection_definitions[x].target_entity
                 local offset_x = (original_entity.position.x - targetent.position.x)
@@ -66,7 +63,7 @@ function copy_circuit_network_reference_connections(original_entity, cloned_enti
             end
         end
     end
-    if has_value(original_entity.type, {"electric-pole", "power-switch"}) then
+    if is_copper_cable_connectable(original_entity.type) then
         if (original_entity.neighbours.copper) then
             for x=1, #original_entity.neighbours.copper do
                 local targetent = original_entity.neighbours.copper[x]
@@ -88,25 +85,29 @@ function copy_circuit_network_reference_connections(original_entity, cloned_enti
     end
 end
 
-function flip_rolling_stock_if_needed(original_entity, cloned_entity)
-    if has_value(original_entity.type, ROLLING_STOCK_TYPES) then
-        if not (original_entity.orientation == cloned_entity.orientation) then
-            cloned_entity.disconnect_rolling_stock(defines.rail_direction.front)
-            cloned_entity.disconnect_rolling_stock(defines.rail_direction.back)
-            cloned_entity.rotate()
-            cloned_entity.connect_rolling_stock(defines.rail_direction.front)
-            cloned_entity.connect_rolling_stock(defines.rail_direction.back)
-        end
-        --[[We don't know which way we are connected, and we can't be sure that the other rolling stock have been cloned yet]]
-        --[[The only edge case we could handle now is the one where we are both the front and back of this train IE: this train is 1 rolling stock long]]
-        cloned_entity.train.manual_mode = original_entity.train.manual_mode
+function flip_rolling_stock(original_entity, cloned_entity)
+    if not (original_entity.orientation == cloned_entity.orientation) then
+        cloned_entity.disconnect_rolling_stock(defines.rail_direction.front)
+        cloned_entity.disconnect_rolling_stock(defines.rail_direction.back)
+        cloned_entity.rotate()
+        cloned_entity.connect_rolling_stock(defines.rail_direction.front)
+        cloned_entity.connect_rolling_stock(defines.rail_direction.back)
     end
+    --[[We don't know which way we are connected, and we can't be sure that the other rolling stock have been cloned yet]]
+    --[[The only edge case we could handle now is the one where we are both the front and back of this train IE: this train is 1 rolling stock long]]
+    cloned_entity.train.manual_mode = original_entity.train.manual_mode
 end
 
 script.on_event(defines.events.on_entity_cloned, function(event)
     if (event.source.valid and event.destination.valid) then
-        copy_signals_in_flight(event.source, event.destination)
-        copy_circuit_network_reference_connections(event.source, event.destination)
-        flip_rolling_stock_if_needed(event.source, event.destination)
+        if is_nonconst_combinator(event.source.type) then
+            copy_signals_in_flight(event.source, event.destination)
+        end
+        if is_circuit_network_connectable(event.source.type) then
+            copy_circuit_network_reference_connections(event.source, event.destination)
+        end
+        if is_rolling_stock(event.source.type) then
+            flip_rolling_stock(event.source, event.destination)
+        end
     end
 end)
