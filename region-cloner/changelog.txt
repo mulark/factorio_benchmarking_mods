@@ -1,3 +1,6 @@
+1.1.10:
+80% reduction in cloning time when cloning over existing an existing paste.
+
 1.1.9:
 Several cleanups/bugfixes
 

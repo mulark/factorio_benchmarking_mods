@@ -3,6 +3,7 @@ local util = require("util")
 local gui = require("scripts.gui")
 require("scripts.scripts")
 require("scripts.common")
+--require('__profiler__/profiler.lua')
 
 
 script.on_init(function()

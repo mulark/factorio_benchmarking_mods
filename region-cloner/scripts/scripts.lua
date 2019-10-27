@@ -196,12 +196,14 @@ local function clear_paste_area(tpx, tpy, current_paste, bounding_box, forces_to
     local new_box = convert_bounding_box_to_paste_region({x = tpx * current_paste, y = tpy * current_paste}, bounding_box)
     local second_try_destroy_entities = {}
     local possible_entities_to_destroy = surface.find_entities_filtered{area=new_box, force=forces_to_clear}
-    for key,found_ent in pairs (possible_entities_to_destroy) do
-        if (found_ent.valid) then
-            for _,ent in pairs(entity_pool) do
-                if (found_ent == ent) then
-                    --[[If any entity we find in the possible area to destroy entities is part of the set we intend to clone from, dont destroy that entity.]]
-                    possible_entities_to_destroy[key] = nil
+    if current_paste == 1 then
+        for key,found_ent in pairs (possible_entities_to_destroy) do
+            if (found_ent.valid) then
+                for _,ent in pairs(entity_pool) do
+                    if (found_ent == ent) then
+                        --[[If any entity we find in the possible area to destroy entities is part of the set we intend to clone from, dont destroy that entity.]]
+                        possible_entities_to_destroy[key] = nil
+                    end
                 end
             end
         end
