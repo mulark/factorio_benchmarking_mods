@@ -1,6 +1,9 @@
 require("scripts.common")
 
 function correct_cloned_inserter_targets(entity_pool, vector, surface, force)
+    if (debug_logging) then
+        log("entered correct_cloned_inserter_targets()")
+    end
     --[[For each inserter, we should ensure we are linked to the same pickup_target and drop_target as the original]]
     for _, inserter in pairs(entity_pool) do
         local cloned_inserter
@@ -42,9 +45,18 @@ function correct_cloned_inserter_targets(entity_pool, vector, surface, force)
             end
         end
     end
+    if (debug_logging) then
+        log("finished clear_paste_area()")
+    end
 end
 
 function copy_entity_pool(player, entity_pool, vector, surface, force)
+    if (debug_logging) then
+        log("entered copy_entity_pool()")
+    end
     surface.clone_entities({entities=entity_pool, destination_offset=vector, destination_surface=surface, destination_force=force})
     correct_cloned_inserter_targets(entity_pool, vector, surface, force)
+    if (debug_logging) then
+        log("finished copy_entity_pool()")
+    end
 end

@@ -52,25 +52,48 @@ local function clean_entity_pool_and_selectively_correct_tile_paste_length_for_r
     return tiles_to_paste_x, tiles_to_paste_y
 end
 
-local function decode_direction_to_copy(gui_dropdown_index)
+local function decode_direction_to_copy(index)
     local tile_paste_direction_x, tile_paste_direction_y = 0, 0
-    if (gui_dropdown_index == 1) then
+    if (index == 1) then
         tile_paste_direction_y = -1
-    elseif (gui_dropdown_index == 2) then
+    elseif (index == 2) then
         tile_paste_direction_x = 1
-    elseif (gui_dropdown_index == 3) then
+    elseif (index == 3) then
         tile_paste_direction_y = 1
-    elseif (gui_dropdown_index == 4) then
+    elseif (index == 4) then
         tile_paste_direction_x = -1
     end
     return tile_paste_direction_x, tile_paste_direction_y
 end
 
-local function convert_box_to_offsets(gui_direction_to_copy_index, bounding_box)
-    local tpx, tpy = decode_direction_to_copy(gui_direction_to_copy_index)
+local function convert_box_to_offsets(direction_to_copy_index, bounding_box)
+    --We know box is sorted at the moment, this is safe.
+    local tpx, tpy = decode_direction_to_copy(direction_to_copy_index)
     tpx = tpx * (bounding_box.right_bottom.x - bounding_box.left_top.x)
     tpy = tpy * (bounding_box.right_bottom.y - bounding_box.left_top.y)
     return tpx,tpy
+end
+
+function job_create_lite(times_to_paste, dir_to_copy_index, chunk_align, player)
+    if (debug_logging) then
+        log("starting to create a lite job")
+    end
+    local job = {}
+    job.player = player
+    job.surface = player.surface
+    job.force = player.force
+    job.bounding_box = restrict_selection_area_to_entities(construct_bounding_box(0,0,0,0), chunk_align, player)
+    job.entity_pool = player.surface.find_entities_filtered{area=job.bounding_box}
+    job.times_to_paste = times_to_paste
+    job.tiles_to_paste_x, job.tiles_to_paste_y = 0
+    job.tiles_to_paste_x, job.tiles_to_paste_y = convert_box_to_offsets(dir_to_copy_index, job.bounding_box)
+    job.tiles_to_paste_x, job.tiles_to_paste_y = clean_entity_pool_and_selectively_correct_tile_paste_length_for_rail_grid(job.entity_pool, job.tiles_to_paste_x, job.tiles_to_paste_y, false, job.player)
+    job.clear_normal_entities = true
+    job.clear_resource_entities = true
+    if (debug_logging) then
+        log("finished lite job creation")
+    end
+    return job
 end
 
 function job_create(player)

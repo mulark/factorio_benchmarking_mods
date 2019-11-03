@@ -1,38 +1,21 @@
 require("scripts.common")
 
---[[TODO Copy over the original with this method.]]
-
 function copy_signals_in_flight(original_entity, cloned_entity)
-    global.do_on_tick = true
-    do_on_tick()
-    local signals_to_copy = original_entity.get_control_behavior().signals_last_tick
-    if not (signals_to_copy) then
-        return
-    end
-    --Each combinator can hold max 18 signals at once.
-    local combinators_needed = math.ceil(#signals_to_copy/18)
-    local current_sig_index = 1
-    for x=1, combinators_needed do
-        local flag_next_combinator = false
-        local combinator = cloned_entity.surface.create_entity{name="constant-combinator", force=cloned_entity.force, position=cloned_entity.position}
-        combinator.connect_neighbour({wire=defines.wire_type.red, target_entity=cloned_entity, target_circuit_id=defines.circuit_connector_id.combinator_output})
-        combinator.connect_neighbour({wire=defines.wire_type.green, target_entity=cloned_entity, target_circuit_id=defines.circuit_connector_id.combinator_output})
-        if (global.combinators_to_destroy_in_next_tick) then
-            table.insert(global.combinators_to_destroy_in_next_tick, combinator)
+    if original_entity.surface == cloned_entity.surface then
+        local connector = 0
+        if (cloned_entity.type == "constant-combinator") then
+            connector = defines.circuit_connector_id.constant_combinator
         else
-            global.combinators_to_destroy_in_next_tick = {combinator}
+            connector = defines.circuit_connector_id.combinator_output
         end
-        for key, sig in pairs(signals_to_copy) do
-            if not (flag_next_combinator) then
-                if (current_sig_index <= 18) then
-                    combinator.get_control_behavior().set_signal(current_sig_index, sig)
-                    signals_to_copy[key] = nil
-                    current_sig_index = current_sig_index + 1
-                else
-                    current_sig_index = 1
-                    flag_next_combinator = true
-                end
-            end
+        if (not cloned_entity.get_merged_signals(connector) and original_entity.get_merged_signals(connector)) then
+            local cloned_entity_original_position = cloned_entity.position
+            cloned_entity.teleport(original_entity.position)
+            cloned_entity.connect_neighbour({wire=defines.wire_type.red, target_entity = original_entity, source_circuit_id = connector, target_circuit_id = connector})
+            cloned_entity.connect_neighbour({wire=defines.wire_type.green, target_entity = original_entity, source_circuit_id = connector, target_circuit_id = connector})
+            cloned_entity.teleport(cloned_entity_original_position)
+            cloned_entity.disconnect_neighbour({wire=defines.wire_type.red, target_entity = original_entity, source_circuit_id = connector, target_circuit_id = connector})
+            cloned_entity.disconnect_neighbour({wire=defines.wire_type.green, target_entity = original_entity, source_circuit_id = connector, target_circuit_id = connector})
         end
     end
 end
@@ -40,7 +23,8 @@ end
 function copy_circuit_network_reference_connections(original_entity, cloned_entity)
     if (original_entity.circuit_connection_definitions) then
         --[[Add 3 arbitrary connections as when we do this action the number of circuit_connection_definitions can change. In practice only 2 will be needed for 99.99% of cases]]
-        for x=1, (#original_entity.circuit_connection_definitions + 3) do
+        --[[1 connection will be used per wire type when copying signals. Bumping it up to 5]]
+        for x=1, (#original_entity.circuit_connection_definitions + 5) do
             if (original_entity.circuit_connection_definitions[x]) then
                 local targetent = original_entity.circuit_connection_definitions[x].target_entity
                 local offset_x = (original_entity.position.x - targetent.position.x)
@@ -100,14 +84,18 @@ end
 
 script.on_event(defines.events.on_entity_cloned, function(event)
     if (event.source.valid and event.destination.valid) then
-        if is_nonconst_combinator(event.source.type) then
-            copy_signals_in_flight(event.source, event.destination)
-        end
         if is_circuit_network_connectable(event.source.type) then
+            if is_combinator(event.source.type) then
+                copy_signals_in_flight(event.source, event.destination)
+            end
             copy_circuit_network_reference_connections(event.source, event.destination)
         end
+        --TODO don't flip rolling stock anymore?
         if is_rolling_stock(event.source.type) then
-            flip_rolling_stock(event.source, event.destination)
+            event.destination.train.manual_mode = event.source.train.manual_mode
+            if false then
+                flip_rolling_stock(event.source, event.destination)
+            end
         end
     end
 end)

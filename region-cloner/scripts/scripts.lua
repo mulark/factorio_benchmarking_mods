@@ -51,18 +51,22 @@ function convert_entity_collision_box_to_rotated_aware(ent)
     return ltx, lty, rbx, rby
 end
 
-function restrict_selection_area_to_entities(left, top, right, bottom, player)
+function restrict_selection_area_to_entities(box, chunk_align, player)
     local first_ent = true
     --secondary_collision_box now exists, this can be done better.
-    local problematic_collision_box_entity_types = {"curved-rail"}
+    --local problematic_collision_box_entity_types = {"curved-rail"}
     local new_left, new_right, new_top, new_bottom = 0
-    left, right = swap_to_fix_pairs(left, right)
-    top, bottom = swap_to_fix_pairs(top, bottom)
-    for _, ent in pairs(player.surface.find_entities_filtered{area={{left, top},{right,bottom}}, force="player"}) do
+    local find_ent_params = {force="player"}
+    if box.left_top.x == 0 and box.left_top.y == 0 and box.right_bottom.x == 0 and box.right_bottom.y == 0 then
+        --cannot be true unless you're using a lite job or the restrict selection area button with all 0's
+    else
+        find_ent_params.area = box
+    end
+    for _, ent in pairs(player.surface.find_entities_filtered(find_ent_params)) do
         if not is_ignored_entity_type(ent.type) then
             local unusual_collision_box_factor_left, unusual_collision_box_factor_top, unusual_collision_box_factor_right, unusual_collision_box_factor_bottom = 0, 0, 0, 0
             local ltx, lty, rbx, rby = convert_entity_collision_box_to_rotated_aware(ent)
-            if has_value(ent.type, problematic_collision_box_entity_types) then
+            if ent.type == "curved-rail" then
                 unusual_collision_box_factor_left, unusual_collision_box_factor_top, unusual_collision_box_factor_right, unusual_collision_box_factor_bottom = decode_direction_for_unusual_collision_box(ent.direction, ent.type)
                 ltx, lty, rbx, rby = 0, 0, 0, 0
             end
@@ -70,6 +74,12 @@ function restrict_selection_area_to_entities(left, top, right, bottom, player)
             local compare_top = math.floor(ent.position.y + lty - unusual_collision_box_factor_top)
             local compare_right = math.ceil(ent.position.x + rbx + unusual_collision_box_factor_right)
             local compare_bottom = math.ceil(ent.position.y + rby + unusual_collision_box_factor_bottom)
+            if chunk_align then
+                compare_left = math.floor(ent.position.x/32) * 32
+                compare_top = math.floor(ent.position.y/32) * 32
+                compare_right = math.ceil(ent.position.x/32) * 32
+                compare_bottom = math.ceil(ent.position.y/32) * 32
+            end
             if (first_ent) then
                 first_ent = false
                 new_left = compare_left
@@ -93,12 +103,13 @@ function restrict_selection_area_to_entities(left, top, right, bottom, player)
     end
     if not (new_left and new_top and new_right and new_bottom) then
         player.print("No player entites were found in the selection area, could not shrink the selection area!")
-        return left, top, right, bottom
+        return construct_bounding_box(left, top, right, bottom)
     end
-    return new_left, new_top, new_right, new_bottom
+    return construct_bounding_box(new_left, new_top, new_right, new_bottom)
 end
 
 function validate_coordinates_and_update_view(player, restrict_area_bool)
+    if debug_logging then log("entered validate_coordinates_and_update_view()") end
     local frame_flow = mod_gui.get_frame_flow(player)
     local current_view = frame_flow["region-cloner_control-window"]["region-cloner_coordinate-table"]
     local old_left = tonumber(current_view["left_top_x"].text)
@@ -106,18 +117,20 @@ function validate_coordinates_and_update_view(player, restrict_area_bool)
     local old_right = tonumber(current_view["right_bottom_x"].text)
     local old_bottom = tonumber(current_view["right_bottom_y"].text)
     if (old_left and old_top and old_bottom and old_right) then
-        if (old_left == old_right or old_top == old_bottom) then
+        local box = construct_safe_bounding_box(old_left, old_top, old_right, old_bottom)
+        if (old_left == old_right or old_top == old_bottom) and not (old_top == 0 and old_left == 0 and old_right == 0 and old_bottom == 0) then
             player.print("You have selected a bounding box with 0 height/width!")
             return false
         end
-        local new_left, new_top, new_right, new_bottom = old_left, old_top, old_right, old_bottom
         if (restrict_area_bool) then
-            new_left, new_top, new_right, new_bottom = restrict_selection_area_to_entities(old_left, old_top, old_right, old_bottom, player)
+            --Default don't chunk align when restricting area via gui button
+            box = restrict_selection_area_to_entities(box, false, player)
         end
-        current_view["left_top_x"].text = new_left
-        current_view["left_top_y"].text = new_top
-        current_view["right_bottom_x"].text = new_right
-        current_view["right_bottom_y"].text = new_bottom
+        if debug_logging then log(serpent.block(box)) end
+        current_view["left_top_x"].text = box.left_top.x
+        current_view["left_top_y"].text = box.left_top.y
+        current_view["right_bottom_x"].text = box.right_bottom.x
+        current_view["right_bottom_y"].text = box.right_bottom.y
         return true
     else
         --No longer needed with numeric text field GUIs
@@ -193,20 +206,36 @@ local function convert_bounding_box_to_paste_region(vector, bounding_box)
 end
 
 local function clear_paste_area(tpx, tpy, current_paste, bounding_box, forces_to_clear, surface, entity_pool)
+    if (debug_logging) then
+        log("entered clear_paste_area()")
+    end
     local new_box = convert_bounding_box_to_paste_region({x = tpx * current_paste, y = tpy * current_paste}, bounding_box)
+    if debug_logging and tpx == 0 and tpy == 0 then
+        game.print("You dingus!")
+        return
+    end
     local second_try_destroy_entities = {}
     local possible_entities_to_destroy = surface.find_entities_filtered{area=new_box, force=forces_to_clear}
     if current_paste == 1 then
+        if (debug_logging) then
+            log("first paste checks... ow?")
+        end
         for key,found_ent in pairs (possible_entities_to_destroy) do
             if (found_ent.valid) then
-                for _,ent in pairs(entity_pool) do
-                    if (found_ent == ent) then
-                        --[[If any entity we find in the possible area to destroy entities is part of the set we intend to clone from, dont destroy that entity.]]
-                        possible_entities_to_destroy[key] = nil
+                --TODO this is a hack for now
+                if found_ent.type ~= "resource" then
+                    for _,ent in pairs(entity_pool) do
+                        if (found_ent == ent) then
+                            --If any entity we find in the possible area to destroy entities is part of the set we intend to clone from, dont destroy that entity.
+                            possible_entities_to_destroy[key] = nil
+                        end
                     end
                 end
             end
         end
+    end
+    if (debug_logging) then
+        log("part 2")
     end
     for _, ent in pairs(possible_entities_to_destroy) do
         if (ent.valid) then
@@ -229,6 +258,9 @@ local function clear_paste_area(tpx, tpy, current_paste, bounding_box, forces_to
             end
         end
     end
+    if (debug_logging) then
+        log("finished clear_paste_area()")
+    end
 end
 
 local function validate_entity_pool(entity_pool)
@@ -240,12 +272,46 @@ local function validate_entity_pool(entity_pool)
     end
 end
 
+function create_job_from_cmd(params)
+    if (debug_logging) then
+        log("creating a job from autoclone command")
+    end
+    local dir_to_copy_index = 1 --north default
+    local times_to_paste = 1
+    local chunk_align = false
+    if params.parameter then
+        params.parameter = params.parameter .. " "
+        for v in params.parameter:gmatch("%S+") do
+            if tonumber(v) then
+                times_to_paste = v
+            end
+            if has_value(string.lower(v),{"n","e","s","w"}) then
+                if v == "n" then dir_to_copy_index = 1 end
+                if v == "e" then dir_to_copy_index = 2 end
+                if v == "s" then dir_to_copy_index = 3 end
+                if v == "w" then dir_to_copy_index = 4 end
+            end
+            if has_value(string.lower(v), {"c"}) then
+                chunk_align = true
+            end
+        end
+    end
+    local job = job_create_lite(times_to_paste, dir_to_copy_index, chunk_align, game.players[params.player_index])
+    run_job(job)
+end
+
 function issue_copy_paste(player)
     if (debug_logging) then
         log("entering issue_copy_paste()")
     end
     local job = job_create(player)
-    --[[Clearing paste area if setting is set]]
+    run_job(job)
+    if (debug_logging) then
+        log("Finished issuing copy paste")
+    end
+end
+
+function run_job(job)
     local forces_to_clear_paste_area = {"enemy"}
     if (job.clear_normal_entities) then
         table.insert(forces_to_clear_paste_area, "player")
@@ -258,35 +324,4 @@ function issue_copy_paste(player)
         validate_entity_pool(job.entity_pool)
         copy_entity_pool(job.player, job.entity_pool, {x = job.tiles_to_paste_x * x, y = job.tiles_to_paste_y * x}, job.surface, job.force)
     end
-    --[[Set power of original entity pool combinators to 0 to delay them by 1 tick.]]
-    for _,ent in pairs(job.entity_pool) do
-        if is_nonconst_combinator(ent.type) then
-            ent.energy = 0
-        end
-    end
-    if (debug_logging) then
-        log("Finished issuing copy paste")
-    end
-end
-
-function do_on_tick()
-    script.on_event(defines.events.on_tick, function(event)
-        if (global.combinators_to_destroy_in_next_tick) then
-            if not next(global.combinators_to_destroy_in_next_tick) then
-                global.do_on_tick = false
-                script.on_event(defines.events.on_tick, nil)
-            end
-            for key,ent in pairs(global.combinators_to_destroy_in_next_tick) do
-                if not (ent.valid) then
-                    global.combinators_to_destroy_in_next_tick[key] = nil
-                else
-                    local signals = ent.get_circuit_network(defines.wire_type.red).signals
-                    if (signals) then
-                        ent.destroy()
-                        global.combinators_to_destroy_in_next_tick[key] = nil
-                    end
-                end
-            end
-        end
-    end)
 end

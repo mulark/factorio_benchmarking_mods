@@ -27,6 +27,13 @@ function construct_bounding_box(left, top, right, bottom)
     return box
 end
 
+function construct_safe_bounding_box(left, top, right, bottom)
+    --Same as construct, but will swap pairs if needed
+    left, right = swap_to_fix_pairs(left,right)
+    top, bottom = swap_to_fix_pairs(top,bottom)
+    return construct_bounding_box(left,top,right,bottom)
+end
+
 function round(x)
     return x + 0.5 - (x + 0.5) % 1
 end
@@ -76,9 +83,10 @@ function is_copper_cable_connectable(type)
 end
 
 --{"decider-combinator", "arithmetic-combinator"}
-function is_nonconst_combinator(type)
+function is_combinator(type)
     if type == "decider-combinator" then return true end
     if type == "arithmetic-combinator" then return true end
+    if type == "constant-combinator" then return true end
     return false
 end
 

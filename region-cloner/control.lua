@@ -7,22 +7,20 @@ require("scripts.common")
 
 
 script.on_init(function()
-    if global.do_on_tick == true then
-        do_on_tick()
-    end
+    register_commands()
 end)
 
 script.on_load(function()
-    if global.do_on_tick == true then
-        do_on_tick()
-    end
+    register_commands()
 end)
 
+function register_commands()
+    commands.add_command("autoclone","[#] [N/s/e/w] [c] --Help: Automatically clones everything [#] times towards [N/s/e/w], provide char [c] to keep chunk aligned", function(param)
+        create_job_from_cmd(param)
+    end)
+end
 
 script.on_configuration_changed(function()
-    if global.do_on_tick == true then
-        do_on_tick()
-    end
     for _, player in pairs(game.players) do
         gui.create_gui(player)
     end
