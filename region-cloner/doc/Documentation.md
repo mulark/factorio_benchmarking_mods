@@ -82,4 +82,7 @@ Since version 1.2.0, Region Cloner doesn't have any runtime cost, all cost is lo
 
 When using autoclone, it's often a good idea to use chunk alignment. This reduces the likelihood of pastes having performance or behavior differences between each other.
 
-Since the majority of entites cannot be teleported between surfaces, cloning the state of the signals on a circuit network is not possible across surfaces.
+## Known issues
+1.2.1 - Cloning rolling stock with speed changes their position relative to the source. [Bug](https://forums.factorio.com/viewtopic.php?f=48&t=68329#p464461)
+1.2.1 - Cloning a train waiting at a station with waitcondition of time passed or inactivity resets their timer to 0. [InterfaceRequest](https://forums.factorio.com/viewtopic.php?f=28&t=77537)
+1.2.1 - You cannot copy circuit network signals across surfaces.
