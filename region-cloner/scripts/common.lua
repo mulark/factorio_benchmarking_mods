@@ -83,10 +83,9 @@ function is_copper_cable_connectable(type)
 end
 
 --{"decider-combinator", "arithmetic-combinator"}
-function is_combinator(type)
+function is_nonconst_combinator(type)
     if type == "decider-combinator" then return true end
     if type == "arithmetic-combinator" then return true end
-    if type == "constant-combinator" then return true end
     return false
 end
 

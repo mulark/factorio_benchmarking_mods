@@ -3,12 +3,17 @@ require("scripts.common")
 function copy_signals_in_flight(original_entity, cloned_entity)
     if original_entity.surface == cloned_entity.surface then
         local connector = 0
-        if (cloned_entity.type == "constant-combinator") then
-            connector = defines.circuit_connector_id.constant_combinator
-        else
+        local merged_signals_clone
+        local merged_signals_orig
+        if is_nonconst_combinator(cloned_entity.type) then
             connector = defines.circuit_connector_id.combinator_output
+            merged_signals_clone = cloned_entity.get_merged_signals(connector)
+            merged_signals_orig = original_entity.get_merged_signals(connector)
+        else
+            merged_signals_clone = cloned_entity.get_merged_signals()
+            merged_signals_orig = original_entity.get_merged_signals()
         end
-        if (not cloned_entity.get_merged_signals(connector) and original_entity.get_merged_signals(connector)) then
+        if (not merged_signals_clone and merged_signals_orig) then
             local cloned_entity_original_position = cloned_entity.position
             cloned_entity.teleport(original_entity.position)
             cloned_entity.connect_neighbour({wire=defines.wire_type.red, target_entity = original_entity, source_circuit_id = connector, target_circuit_id = connector})
@@ -85,9 +90,7 @@ end
 script.on_event(defines.events.on_entity_cloned, function(event)
     if (event.source.valid and event.destination.valid) then
         if is_circuit_network_connectable(event.source.type) then
-            if is_combinator(event.source.type) then
-                copy_signals_in_flight(event.source, event.destination)
-            end
+            copy_signals_in_flight(event.source, event.destination)
             copy_circuit_network_reference_connections(event.source, event.destination)
         end
         --TODO don't flip rolling stock anymore?

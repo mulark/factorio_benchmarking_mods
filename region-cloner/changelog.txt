@@ -1,3 +1,6 @@
+1.2.1:
+Copy circuit network signals for all entites, not just combinators.
+
 1.2.0:
 Numerous changes, drastically better circuit network signals copy. autoclone command. Restrict selection area now will populate with all entity span if clicked when all 0's in coord box. Removed dependance of on_tick completely (before it was executed for 1 single tick). Removed cloned rolling stock flip check since it seems to be fixed?
 
