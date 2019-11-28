@@ -1,0 +1,11 @@
+{
+  "name": "item-entity-collision-mask-remover",
+  "version": "0.0.1",
+  "title": "item-entity-collision-mask-remover",
+  "author": "mulark",
+  "contact": "",
+  "homepage": "mulark.github.io",
+  "description": "A mod that removes the collision mask from item entities. Not intended for normal gameplay.",
+  "factorio_version": "0.17",
+  "dependencies": []
+}

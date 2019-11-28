@@ -4,7 +4,7 @@
   "title": "logger",
   "author": "mulark",
   "contact": "",
-  "homepage": "mulark.gitub.io",
+  "homepage": "mulark.github.io",
   "description": "Logs the game tick to the factorio current file every tick",
   "factorio_version": "0.17",
   "dependencies": []
