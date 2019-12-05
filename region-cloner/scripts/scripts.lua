@@ -72,9 +72,7 @@ function restrict_selection_area_to_entities(box, chunk_align, player, respect_l
                 ltx, lty, rbx, rby = 0, 0, 0, 0
             end
             if respect_logistics then
-                player.print("working?")
                 if ent.logistic_cell then
-                    player.print("some")
                     local distance = ent.logistic_cell.logistic_radius
                     if distance > ltx then
                         ltx = -(distance)
