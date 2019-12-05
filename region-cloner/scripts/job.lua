@@ -74,7 +74,7 @@ local function convert_box_to_offsets(direction_to_copy_index, bounding_box)
     return tpx,tpy
 end
 
-function job_create_lite(times_to_paste, dir_to_copy_index, chunk_align, player)
+function job_create_lite(times_to_paste, dir_to_copy_index, chunk_align, player, respect_logistics)
     if (debug_logging) then
         log("starting to create a lite job")
     end
@@ -82,7 +82,13 @@ function job_create_lite(times_to_paste, dir_to_copy_index, chunk_align, player)
     job.player = player
     job.surface = player.surface
     job.force = player.force
-    job.bounding_box = restrict_selection_area_to_entities(construct_bounding_box(0,0,0,0), chunk_align, player)
+    job.bounding_box = restrict_selection_area_to_entities(construct_bounding_box(0,0,0,0), chunk_align, player, respect_logistics)
+    if job.bounding_box.left_top.x == job.bounding_box.right_bottom.x then
+        return false
+    end
+    if job.bounding_box.left_top.y == job.bounding_box.right_bottom.y then
+        return false
+    end
     job.entity_pool = player.surface.find_entities_filtered{area=job.bounding_box}
     job.times_to_paste = times_to_paste
     job.tiles_to_paste_x, job.tiles_to_paste_y = 0

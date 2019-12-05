@@ -51,7 +51,7 @@ function convert_entity_collision_box_to_rotated_aware(ent)
     return ltx, lty, rbx, rby
 end
 
-function restrict_selection_area_to_entities(box, chunk_align, player)
+function restrict_selection_area_to_entities(box, chunk_align, player, respect_logistics)
     local first_ent = true
     --secondary_collision_box now exists, this can be done better.
     --local problematic_collision_box_entity_types = {"curved-rail"}
@@ -65,10 +65,30 @@ function restrict_selection_area_to_entities(box, chunk_align, player)
     for _, ent in pairs(player.surface.find_entities_filtered(find_ent_params)) do
         if not is_ignored_entity_type(ent.type) then
             local unusual_collision_box_factor_left, unusual_collision_box_factor_top, unusual_collision_box_factor_right, unusual_collision_box_factor_bottom = 0, 0, 0, 0
+            --ltx = left top x relative collision box coords
             local ltx, lty, rbx, rby = convert_entity_collision_box_to_rotated_aware(ent)
             if ent.type == "curved-rail" then
                 unusual_collision_box_factor_left, unusual_collision_box_factor_top, unusual_collision_box_factor_right, unusual_collision_box_factor_bottom = decode_direction_for_unusual_collision_box(ent.direction, ent.type)
                 ltx, lty, rbx, rby = 0, 0, 0, 0
+            end
+            if respect_logistics then
+                player.print("working?")
+                if ent.logistic_cell then
+                    player.print("some")
+                    local distance = ent.logistic_cell.logistic_radius
+                    if distance > ltx then
+                        ltx = -(distance)
+                    end
+                    if distance > lty then
+                        lty = -(distance)
+                    end
+                    if distance > rbx then
+                        rbx = distance + 1
+                    end
+                    if distance > rby then
+                        rby = distance + 1
+                    end
+                end
             end
             local compare_left = math.floor(ent.position.x + ltx - unusual_collision_box_factor_left)
             local compare_top = math.floor(ent.position.y + lty - unusual_collision_box_factor_top)
@@ -102,7 +122,7 @@ function restrict_selection_area_to_entities(box, chunk_align, player)
         end
     end
     if not (new_left and new_top and new_right and new_bottom) then
-        player.print("No player entites were found in the selection area, could not shrink the selection area!")
+        player.print("No player entites were found in the selection area, could not determine a new selection area!")
         return construct_bounding_box(left, top, right, bottom)
     end
     return construct_bounding_box(new_left, new_top, new_right, new_bottom)
@@ -124,7 +144,7 @@ function validate_coordinates_and_update_view(player, restrict_area_bool)
         end
         if (restrict_area_bool) then
             --Default don't chunk align when restricting area via gui button
-            box = restrict_selection_area_to_entities(box, false, player)
+            box = restrict_selection_area_to_entities(box, false, player, false)
         end
         if debug_logging then log(serpent.block(box)) end
         current_view["left_top_x"].text = box.left_top.x
@@ -279,6 +299,7 @@ function create_job_from_cmd(params)
     local dir_to_copy_index = 1 --north default
     local times_to_paste = 1
     local chunk_align = false
+    local respect_logistics = false
     if params.parameter then
         params.parameter = params.parameter .. " "
         for v in params.parameter:gmatch("%S+") do
@@ -294,9 +315,12 @@ function create_job_from_cmd(params)
             if has_value(string.lower(v), {"c"}) then
                 chunk_align = true
             end
+            if has_value(string.lower(v), {"r"}) then
+              respect_logistics = true
+            end
         end
     end
-    local job = job_create_lite(times_to_paste, dir_to_copy_index, chunk_align, game.players[params.player_index])
+    local job = job_create_lite(times_to_paste, dir_to_copy_index, chunk_align, game.players[params.player_index], respect_logistics)
     run_job(job)
 end
 
@@ -312,16 +336,18 @@ function issue_copy_paste(player)
 end
 
 function run_job(job)
-    local forces_to_clear_paste_area = {"enemy"}
-    if (job.clear_normal_entities) then
-        table.insert(forces_to_clear_paste_area, "player")
-    end
-    if (job.clear_resource_entities) then
-        table.insert(forces_to_clear_paste_area, "neutral")
-    end
-    for x=1, job.times_to_paste do
-        clear_paste_area(job.tiles_to_paste_x, job.tiles_to_paste_y, x, job.bounding_box, forces_to_clear_paste_area, job.surface, job.entity_pool)
-        validate_entity_pool(job.entity_pool)
-        copy_entity_pool(job.player, job.entity_pool, {x = job.tiles_to_paste_x * x, y = job.tiles_to_paste_y * x}, job.surface, job.force)
+    if job then
+        local forces_to_clear_paste_area = {"enemy"}
+        if (job.clear_normal_entities) then
+            table.insert(forces_to_clear_paste_area, "player")
+        end
+        if (job.clear_resource_entities) then
+            table.insert(forces_to_clear_paste_area, "neutral")
+        end
+        for x=1, job.times_to_paste do
+            clear_paste_area(job.tiles_to_paste_x, job.tiles_to_paste_y, x, job.bounding_box, forces_to_clear_paste_area, job.surface, job.entity_pool)
+            validate_entity_pool(job.entity_pool)
+            copy_entity_pool(job.player, job.entity_pool, {x = job.tiles_to_paste_x * x, y = job.tiles_to_paste_y * x}, job.surface, job.force)
+        end
     end
 end

@@ -1,27 +1,28 @@
 require("scripts.common")
 
 function copy_signals_in_flight(original_entity, cloned_entity)
-    if original_entity.surface == cloned_entity.surface then
-        local connector = 0
-        local merged_signals_clone
-        local merged_signals_orig
-        if is_nonconst_combinator(cloned_entity.type) then
-            connector = defines.circuit_connector_id.combinator_output
-            merged_signals_clone = cloned_entity.get_merged_signals(connector)
-            merged_signals_orig = original_entity.get_merged_signals(connector)
-        else
-            merged_signals_clone = cloned_entity.get_merged_signals()
-            merged_signals_orig = original_entity.get_merged_signals()
-        end
-        if (not merged_signals_clone and merged_signals_orig) then
-            local cloned_entity_original_position = cloned_entity.position
-            cloned_entity.teleport(original_entity.position)
-            cloned_entity.connect_neighbour({wire=defines.wire_type.red, target_entity = original_entity, source_circuit_id = connector, target_circuit_id = connector})
-            cloned_entity.connect_neighbour({wire=defines.wire_type.green, target_entity = original_entity, source_circuit_id = connector, target_circuit_id = connector})
-            cloned_entity.teleport(cloned_entity_original_position)
-            cloned_entity.disconnect_neighbour({wire=defines.wire_type.red, target_entity = original_entity, source_circuit_id = connector, target_circuit_id = connector})
-            cloned_entity.disconnect_neighbour({wire=defines.wire_type.green, target_entity = original_entity, source_circuit_id = connector, target_circuit_id = connector})
-        end
+    --Entities across surfaces can connect wires together, excepting copper wire
+    --This doesnt copy across surfaces, I think it's cause it depends on which one is trying to connect to the other.
+    --This works as far as normal cloning goes so I'll just commit it cause it'll clutter otherwise
+    local connector = 0
+    local merged_signals_clone
+    local merged_signals_orig
+    if is_nonconst_combinator(cloned_entity.type) then
+        connector = defines.circuit_connector_id.combinator_output
+        merged_signals_clone = cloned_entity.get_merged_signals(connector)
+        merged_signals_orig = original_entity.get_merged_signals(connector)
+    else
+        merged_signals_clone = cloned_entity.get_merged_signals()
+        merged_signals_orig = original_entity.get_merged_signals()
+    end
+    if (not merged_signals_clone and merged_signals_orig) then
+        local cloned_entity_original_position = cloned_entity.position
+        cloned_entity.teleport(original_entity.position)
+        cloned_entity.connect_neighbour({wire=defines.wire_type.red, target_entity = original_entity, source_circuit_id = connector, target_circuit_id = connector})
+        cloned_entity.connect_neighbour({wire=defines.wire_type.green, target_entity = original_entity, source_circuit_id = connector, target_circuit_id = connector})
+        cloned_entity.teleport(cloned_entity_original_position)
+        cloned_entity.disconnect_neighbour({wire=defines.wire_type.red, target_entity = original_entity, source_circuit_id = connector, target_circuit_id = connector})
+        cloned_entity.disconnect_neighbour({wire=defines.wire_type.green, target_entity = original_entity, source_circuit_id = connector, target_circuit_id = connector})
     end
 end
 

@@ -4,6 +4,7 @@ local gui = require("scripts.gui")
 require("scripts.scripts")
 require("scripts.common")
 --require('__profiler__/profiler.lua')
+--pcall(require,'__coverage__/coverage.lua')
 
 
 script.on_init(function()
@@ -15,7 +16,7 @@ script.on_load(function()
 end)
 
 function register_commands()
-    commands.add_command("autoclone","[#] [N/s/e/w] [c] --Help: Automatically clones everything [#] times towards [N/s/e/w], provide char [c] to keep chunk aligned", function(param)
+    commands.add_command("autoclone","[#] [N/s/e/w] [c] [r] --Help: Automatically clones everything [#] times towards [N/s/e/w], provide char [c] to keep chunk aligned, provide char [r] to respect roboport overlap range", function(param)
         create_job_from_cmd(param)
     end)
 end
