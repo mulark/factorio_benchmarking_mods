@@ -37,6 +37,7 @@ Autoclone can be invoked with the following:
 * [\#]: A positive number that denotes the number of times to paste. Optional. Default = 1
 * [N/s/e/w]: A single character that denotes which direction the paste should be executed towards. Optional. Default = North
 * [c]: A single character 'c' which if present changes the cloning selection area to be chunk aligned. Optional. Default = Off
+* [r]: A single character 'r' which if present makes the cloning source area respect the logistic area of the entites, such that clones don't overlap their logistic area. Default = Off
 
 All arguments are case insensitive. Any additional arguments are ignored.
 
@@ -48,7 +49,7 @@ Usage:
 /autoclone c
 # Automatically clones 1 time towards the north, chunk aligned.
 
-/autoclone 2 N
+/autoclone 2 n
 # Automatically clones 2 times towards the north, not chunk aligned
 ```
 

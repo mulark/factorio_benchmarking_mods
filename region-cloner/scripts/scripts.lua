@@ -88,15 +88,19 @@ function restrict_selection_area_to_entities(box, chunk_align, player, respect_l
                     end
                 end
             end
-            local compare_left = math.floor(ent.position.x + ltx - unusual_collision_box_factor_left)
-            local compare_top = math.floor(ent.position.y + lty - unusual_collision_box_factor_top)
-            local compare_right = math.ceil(ent.position.x + rbx + unusual_collision_box_factor_right)
-            local compare_bottom = math.ceil(ent.position.y + rby + unusual_collision_box_factor_bottom)
+            local l = ent.position.x + ltx - unusual_collision_box_factor_left
+            local t = ent.position.y + lty - unusual_collision_box_factor_top
+            local r = ent.position.x + rbx + unusual_collision_box_factor_right
+            local b = ent.position.y + rby + unusual_collision_box_factor_bottom
+            local compare_left = math.floor(l)
+            local compare_top = math.floor(t)
+            local compare_right = math.ceil(r)
+            local compare_bottom = math.ceil(b)
             if chunk_align then
-                compare_left = math.floor(ent.position.x/32) * 32
-                compare_top = math.floor(ent.position.y/32) * 32
-                compare_right = math.ceil(ent.position.x/32) * 32
-                compare_bottom = math.ceil(ent.position.y/32) * 32
+                compare_left = math.floor(l/32) * 32
+                compare_top = math.floor(t/32) * 32
+                compare_right = math.ceil(r/32) * 32
+                compare_bottom = math.ceil(b/32) * 32
             end
             if (first_ent) then
                 first_ent = false
