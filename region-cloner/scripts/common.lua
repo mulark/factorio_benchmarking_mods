@@ -4,6 +4,10 @@ global.combinators_to_destroy_in_next_tick = {}
 
 debug_logging = false
 
+-- Electric poles need nothing from clone_entities and
+-- it ends up being significantly faster to just create_entity instead.
+LITE_CLONING_TYPES = {"electric-pole"}
+
 function has_value(val, tab)
     --Slow path for non-critical comparisons.
     for index, value in ipairs(tab) do

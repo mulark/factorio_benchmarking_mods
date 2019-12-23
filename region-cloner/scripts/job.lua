@@ -89,7 +89,8 @@ function job_create_lite(times_to_paste, dir_to_copy_index, chunk_align, player,
     if job.bounding_box.left_top.y == job.bounding_box.right_bottom.y then
         return false
     end
-    job.entity_pool = player.surface.find_entities_filtered{area=job.bounding_box}
+    job.entity_pool = player.surface.find_entities_filtered{area=job.bounding_box, type = LITE_CLONING_TYPES, invert = true}
+    job.lite_entity_pool = player.surface.find_entities_filtered{area=job.bounding_box, type = LITE_CLONING_TYPES}
     job.times_to_paste = times_to_paste
     job.tiles_to_paste_x, job.tiles_to_paste_y = 0
     job.tiles_to_paste_x, job.tiles_to_paste_y = convert_box_to_offsets(dir_to_copy_index, job.bounding_box)
@@ -116,9 +117,10 @@ function job_create(player)
     local tile_paste_override_table = advanced_settings_gui[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_override_table"]
     local custom_tile_paste_length_flag = tile_paste_override_table[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_override_checkbox"].state
     job.custom_tile_paste_length_flag = custom_tile_paste_length_flag
-    local temp_ent_pool = player.surface.find_entities_filtered{area=job.bounding_box}
+    local temp_ent_pool = player.surface.find_entities_filtered{area=job.bounding_box, type = LITE_CLONING_TYPES, invert = true}
     local gui_dropdown_index = frame_flow["region-cloner_control-window"]["region-cloner_drop_down_table"]["region-cloner_direction-to-copy"].selected_index
     job.entity_pool = temp_ent_pool
+    job.lite_entity_pool = player.surface.find_entities_filtered{area=job.bounding_box, type = LITE_CLONING_TYPES}
     job.times_to_paste = tonumber(mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_drop_down_table"]["number_of_copies"].text)
 
     if (job.custom_tile_paste_length_flag) then

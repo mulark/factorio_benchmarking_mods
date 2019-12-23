@@ -60,3 +60,19 @@ function copy_entity_pool(player, entity_pool, vector, surface, force)
         log("finished copy_entity_pool()")
     end
 end
+
+function copy_lite_entity_pool(player, lite_entity_pool, vector, surface, force)
+    if (debug_logging) then
+        log("entered copy_lite_entity_pool()")
+    end
+    for _,original in pairs(lite_entity_pool) do
+        local cloned = surface.create_entity({name=original.name, position = {original.position.x + vector.x, original.position.y + vector.y}, force = force, create_build_effect_smoke = false, direction = original.direction})
+        if cloned and original.valid then
+            local event_content = {source=original, destination=cloned}
+            script.raise_event(defines.events.on_entity_cloned, event_content)
+        end
+    end
+    if (debug_logging) then
+        log("finished copy_lite_entity_pool()")
+    end
+end

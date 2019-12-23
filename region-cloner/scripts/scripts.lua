@@ -349,6 +349,8 @@ function run_job(job)
         for x=1, job.times_to_paste do
             clear_paste_area(job.tiles_to_paste_x, job.tiles_to_paste_y, x, job.bounding_box, forces_to_clear_paste_area, job.surface, job.entity_pool)
             validate_entity_pool(job.entity_pool)
+            validate_entity_pool(job.lite_entity_pool)
+            copy_lite_entity_pool(job.player, job.lite_entity_pool, {x = job.tiles_to_paste_x * x, y = job.tiles_to_paste_y * x}, job.surface, job.force)
             copy_entity_pool(job.player, job.entity_pool, {x = job.tiles_to_paste_x * x, y = job.tiles_to_paste_y * x}, job.surface, job.force)
         end
     end
