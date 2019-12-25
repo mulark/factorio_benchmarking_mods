@@ -57,7 +57,7 @@ function copy_circuit_network_reference_connections(original_entity, cloned_enti
         if (original_entity.neighbours.copper) then
             for x=1, #original_entity.neighbours.copper do
                 local targetent = original_entity.neighbours.copper[x]
-                if (targetent.type ~= "electic-pole") then
+                if (targetent.type ~= "electric-pole") then
                     --technically this is unnecessary cause you can't connect two power switches together with copper
                     return
                 end

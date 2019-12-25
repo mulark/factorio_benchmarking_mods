@@ -58,7 +58,8 @@ function restrict_selection_area_to_entities(box, chunk_align, player, respect_l
     local new_left, new_right, new_top, new_bottom = 0
     local find_ent_params = {force="player"}
     if box.left_top.x == 0 and box.left_top.y == 0 and box.right_bottom.x == 0 and box.right_bottom.y == 0 then
-        --cannot be true unless you're using a lite job or the restrict selection area button with all 0's
+        -- Cannot be true unless you're using a lite job or the restrict selection area button with all 0's
+        -- Search an unrestricted area if this is the case.
     else
         find_ent_params.area = box
     end
@@ -131,7 +132,6 @@ function restrict_selection_area_to_entities(box, chunk_align, player, respect_l
 end
 
 function validate_coordinates_and_update_view(player, restrict_area_bool)
-    if debug_logging then log("entered validate_coordinates_and_update_view()") end
     local frame_flow = mod_gui.get_frame_flow(player)
     local current_view = frame_flow["region-cloner_control-window"]["region-cloner_coordinate-table"]
     local old_left = tonumber(current_view["left_top_x"].text)
@@ -157,6 +157,9 @@ function validate_coordinates_and_update_view(player, restrict_area_bool)
     else
         --No longer needed with numeric text field GUIs
         player.print("A coordinate is not a number!")
+    if debug_logging then
+        log("entered validate_coordinates_and_update_view()")
+    end
         return false
     end
 end
