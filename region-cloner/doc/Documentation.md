@@ -23,6 +23,7 @@ For major_version, this corresponds to the most recent Factorio stable version f
 0.17: major_version 1
 ...
 ```
+If compatiblity is not broken, the major version remains the same. (All region cloner version starting with major version 1 must be compatible with 0.17, and they will also be compatible with Factorio version 0.18 should there be no 2.X release.
 Feature versions denote that a major feature was added, removed, or changed significantly.
 
 ## Features
