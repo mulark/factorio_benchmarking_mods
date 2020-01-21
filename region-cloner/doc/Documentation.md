@@ -33,25 +33,25 @@ Region cloner comes with a command entitled autoclone which allows for rapid clo
 When choosing the area to clone, only entities of the "player" force are considered. But when actually performing cloning, all entities within the selection are cloned. (Ex: won't clone ore patches unless they're built on).
 Autoclone can be invoked with the following:
 ```
-/autoclone [#] [N/s/e/w] [c]
+/autoclone [#] [N/s/e/w] [c] [r]
 ```
 * [\#]: A positive number that denotes the number of times to paste. Optional. Default = 1
 * [N/s/e/w]: A single character that denotes which direction the paste should be executed towards. Optional. Default = North
 * [c]: A single character 'c' which if present changes the cloning selection area to be chunk aligned. Optional. Default = Off
 * [r]: A single character 'r' which if present makes the cloning source area respect the logistic area of the entites, such that clones don't overlap their logistic area. Default = Off
 
-All arguments are case insensitive. Any additional arguments are ignored.
+All arguments are case insensitive and order independant. Any additional arguments are ignored.
 
 Usage:
 ```
 /autoclone 9 e c
-# Automatically clones 9 pastes towards the east, chunk aligned
+# Automatically clones 9 pastes towards the east, chunk aligned.
 
 /autoclone c
 # Automatically clones 1 time towards the north, chunk aligned.
 
-/autoclone 2 n
-# Automatically clones 2 times towards the north, not chunk aligned
+/autoclone 2 n r
+# Automatically clones 2 times towards the north, not chunk aligned. If the pastes contain logistic areas, they will be spaced out enough so the logistic cells don't merge.
 ```
 
 #### GUI
@@ -64,7 +64,7 @@ The direction to copy parameter decides which direction you wish to copy. This p
 
 Number of copies allows you to specify how many pastes you want. ex: I want 10 total copies of a design, I put 9 here. Must be a whole positive number.
 
-The shrink selection area reduces the selected area to only the area required. This can expand the area as well, if an entity is partially cut off by the selection area, but its collision box lies partially outside. If your selection box is currently all 0's, then it will select the box around all player entites.
+The shrink selection area reduces the selected area to only the area required. This can expand the area as well, if an entity is partially cut off by the selection area, but its collision box lies partially outside. If your selection box is currently all 0's, then it will select the smallest bounding box that encompasses all player entites in the player's surface.
 
 Get selection tool gives you a tool that allows you to rapidly select new areas and populate them into the left_top and right_bottom fields.
 
@@ -80,7 +80,7 @@ The clear paste area flags allow for selectively destroying entites where we are
 ## Considerations
 Region Cloner officially supports multiplayer, however it's strongly recommended to use GUI parameters instead of autoclone. This configuration is lightly tested so please report any issues you may encounter.
 
-Since version 1.2.0, Region Cloner doesn't have any runtime cost, all cost is localized to performing a paste.
+Since version 1.2.0, Region Cloner doesn't have any runtime cost within on_tick, all cost is localized to performing a paste.
 
 When using autoclone, it's often a good idea to use chunk alignment. This reduces the likelihood of pastes having performance or behavior differences between each other.
 
