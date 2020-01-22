@@ -1,11 +1,11 @@
 {
   "name": "item-entity-collision-box-remover",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "title": "item-entity-collision-box-remover",
   "author": "mulark",
   "contact": "",
   "homepage": "mulark.github.io",
   "description": "A mod that zeros the collision box from item entities. Not intended for normal gameplay.",
-  "factorio_version": "0.17",
+  "factorio_version": "0.18",
   "dependencies": []
 }

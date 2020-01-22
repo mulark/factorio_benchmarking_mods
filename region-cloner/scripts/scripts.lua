@@ -63,7 +63,8 @@ function restrict_selection_area_to_entities(box, chunk_align, player, respect_l
     else
         find_ent_params.area = box
     end
-    for _, ent in pairs(player.surface.find_entities_filtered(find_ent_params)) do
+    local temp_ent_holder = player.surface.find_entities_filtered(find_ent_params)
+    for _, ent in pairs(temp_ent_holder) do
         if not is_ignored_entity_type(ent.type) then
             local unusual_collision_box_factor_left, unusual_collision_box_factor_top, unusual_collision_box_factor_right, unusual_collision_box_factor_bottom = 0, 0, 0, 0
             --ltx = left top x relative collision box coords
