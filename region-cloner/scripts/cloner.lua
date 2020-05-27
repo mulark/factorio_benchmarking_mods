@@ -65,11 +65,23 @@ function copy_lite_entity_pool(player, lite_entity_pool, vector, surface, force)
     if (debug_logging) then
         log("entered copy_lite_entity_pool()")
     end
+    -- Pointless code duplication required by 0.18.27, since on_entity_cloned
+    -- is no longer available
     for _,original in pairs(lite_entity_pool) do
         local cloned = surface.create_entity({name=original.name, position = {original.position.x + vector.x, original.position.y + vector.y}, force = force, create_build_effect_smoke = false, direction = original.direction})
         if cloned and original.valid then
-            local event_content = {source=original, destination=cloned}
-            script.raise_event(defines.events.on_entity_cloned, event_content)
+            local event = {source=original, destination=cloned}
+            if is_circuit_network_connectable(event.source.type) then
+                copy_signals_in_flight(event.source, event.destination)
+                copy_circuit_network_reference_connections(event.source, event.destination)
+            end
+            --TODO don't flip rolling stock anymore?
+            if is_rolling_stock(event.source.type) then
+                event.destination.train.manual_mode = event.source.train.manual_mode
+                if false then
+                    flip_rolling_stock(event.source, event.destination)
+                end
+            end
         end
     end
     if (debug_logging) then
