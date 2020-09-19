@@ -1,9 +1,9 @@
 {
   "name": "car-optimizer",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "title": "Car Optimizer",
   "author": "mulark",
   "description": "Sets cars to inactive if they aren't on a belt or being driven by a player",
   "dependencies": ["base"],
-  "factorio_version": "0.16"
+  "factorio_version": "1.0"
 }

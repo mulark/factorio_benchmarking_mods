@@ -1,0 +1,5 @@
+0.0.3:
+Optimized events by using event filters
+
+0.0.2:
+Initial 1.0 release
