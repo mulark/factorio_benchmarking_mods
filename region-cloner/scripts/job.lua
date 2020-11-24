@@ -1,5 +1,7 @@
 require("scripts.common")
 
+local mod_gui = require("mod-gui")
+
 local function get_region_bounding_box(player)
     local coord_table = mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_coordinate-table"]
     local left = tonumber(coord_table["left_top_x"].text)

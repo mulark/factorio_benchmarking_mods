@@ -50,7 +50,7 @@ script.on_event({defines.events.on_gui_click}, function(event)
     end
     if (clicked_on == GUI_ELEMENT_PREFIX .. "get_selection_tool_button") then
         --[[Try to clean anything in the cursor]]
-        player.clean_cursor()
+        player.clear_cursor()
         if (player.cursor_stack.valid_for_read) then
             player.print("Your inventory is too full to use this tool")
             return
@@ -74,16 +74,16 @@ script.on_event({defines.events.on_player_selected_area}, function(event)
     if (player.cursor_stack.name == "region-cloner_selection-tool") then
         local coord_table = mod_gui.get_frame_flow(player)[GUI_ELEMENT_PREFIX .. "control-window"][GUI_ELEMENT_PREFIX .. "coordinate-table"]
         if coord_table["left_top_x"] then
-            coord_table["left_top_x"].text = math.floor(event.area.left_top.x)
+            coord_table["left_top_x"].text = tostring(math.floor(event.area.left_top.x))
         end
         if coord_table["left_top_y"] then
-            coord_table["left_top_y"].text = math.floor(event.area.left_top.y)
+            coord_table["left_top_y"].text = tostring(math.floor(event.area.left_top.y))
         end
         if coord_table["right_bottom_x"] then
-            coord_table["right_bottom_x"].text = math.ceil(event.area.right_bottom.x)
+            coord_table["right_bottom_x"].text = tostring(math.ceil(event.area.right_bottom.x))
         end
         if coord_table["right_bottom_y"] then
-            coord_table["right_bottom_y"].text = math.ceil(event.area.right_bottom.y)
+            coord_table["right_bottom_y"].text = tostring(math.ceil(event.area.right_bottom.y))
         end
     end
 end)

@@ -3,6 +3,8 @@ require("scripts.common")
 require("scripts.job")
 require("scripts.correct_cloned_entities_in_event")
 
+local mod_gui = require("mod-gui")
+
 function decode_direction_for_unusual_collision_box(direction, type)
     local offset_left, offset_top, offset_right, offset_bottom = 4, 4, 4, 4
     if type == "curved-rail" then
@@ -150,10 +152,10 @@ function validate_coordinates_and_update_view(player, restrict_area_bool)
             box = restrict_selection_area_to_entities(box, false, player, false)
         end
         if debug_logging then log(serpent.block(box)) end
-        current_view["left_top_x"].text = box.left_top.x
-        current_view["left_top_y"].text = box.left_top.y
-        current_view["right_bottom_x"].text = box.right_bottom.x
-        current_view["right_bottom_y"].text = box.right_bottom.y
+        current_view["left_top_x"].text = tostring(box.left_top.x)
+        current_view["left_top_y"].text = tostring(box.left_top.y)
+        current_view["right_bottom_x"].text = tostring(box.right_bottom.x)
+        current_view["right_bottom_y"].text = tostring(box.right_bottom.y)
         return true
     else
         --No longer needed with numeric text field GUIs

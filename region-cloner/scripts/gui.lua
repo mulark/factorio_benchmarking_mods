@@ -1,5 +1,7 @@
 local gui = {}
 
+local mod_gui = require("mod-gui")
+
 gui.create_gui = function (player)
     gui.clear_gui(player)
     local mod_button = mod_gui.get_button_flow(player).add{type="sprite-button", name=GUI_ELEMENT_PREFIX .. "main-button", sprite="achievement/lazy-bastard", tooltip="Region Cloner"}
