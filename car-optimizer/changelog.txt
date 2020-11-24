@@ -1,3 +1,6 @@
+0.0.4:
+Update for 1.1
+
 0.0.3:
 Optimized events by using event filters
 

@@ -1,9 +1,5 @@
 require "util"
 
-
---[[In the future this will be rewritten for then general case.
-    I want to only listen to the on_player_driving_changed_state event.]]
-
 local function round_to_closest_tile_with_offset(x)
     x = math.floor(x) + 0.5
     return (x)
