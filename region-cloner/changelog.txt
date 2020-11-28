@@ -1,3 +1,6 @@
+2.0.2:
+Fix edge case when power switch is connected to one copper wire and source_wire_id is 1
+
 2.0.1:
 Fix bug with cloning power switches
 

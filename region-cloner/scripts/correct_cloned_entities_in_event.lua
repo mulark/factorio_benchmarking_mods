@@ -68,7 +68,25 @@ function copy_circuit_network_reference_connections(original_entity, cloned_enti
                 if (targetnewent) then
                     local cloned_entity_original_position = cloned_entity.position
                     cloned_entity.teleport(targetnewent.position)
-                    cloned_entity.connect_neighbour({wire = defines.wire_type.copper, target_entity = targetnewent, source_wire_id = x - 1})
+                    local wire_id
+                    if (#original_entity.neighbours.copper == 1) then
+                        -- Only one of the wire connections is supplied. Thus
+                        -- We have to figure out which one is in use
+                        -- TODO this is a hack since there's no way to read
+                        -- the entity source_wire_id
+                        -- Attempt to connect in the original case
+                        local connection_formed = original_entity.connect_neighbour({target_entity = targetent, wire = defines.wire_type.copper, source_wire_id = 0})
+                        if (connection_formed) then
+                            -- if a connection did form then undo it
+                            original_entity.disconnect_neighbour({target_entity = targetent, wire=defines.wire_type.copper, source_wire_id = 0})
+                            wire_id = 1
+                        else
+                            wire_id = 0
+                        end
+                    else
+                        wire_id = x - 1
+                    end
+                    cloned_entity.connect_neighbour({wire = defines.wire_type.copper, target_entity = targetnewent, source_wire_id = wire_id})
                     cloned_entity.teleport(cloned_entity_original_position)
                 end
             end
