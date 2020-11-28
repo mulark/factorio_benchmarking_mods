@@ -58,7 +58,8 @@ function copy_circuit_network_reference_connections(original_entity, cloned_enti
             for x=1, #original_entity.neighbours.copper do
                 local targetent = original_entity.neighbours.copper[x]
                 if (targetent.type ~= "electric-pole") then
-                    --technically this is unnecessary cause you can't connect two power switches together with copper
+                    -- technically this is unnecessary cause you can't connect
+                    -- two power switches together with copper
                     return
                 end
                 local offset_x = (original_entity.position.x - targetent.position.x)
@@ -67,7 +68,7 @@ function copy_circuit_network_reference_connections(original_entity, cloned_enti
                 if (targetnewent) then
                     local cloned_entity_original_position = cloned_entity.position
                     cloned_entity.teleport(targetnewent.position)
-                    cloned_entity.connect_neighbour(targetnewent)
+                    cloned_entity.connect_neighbour({wire = defines.wire_type.copper, target_entity = targetnewent, source_wire_id = x - 1})
                     cloned_entity.teleport(cloned_entity_original_position)
                 end
             end
