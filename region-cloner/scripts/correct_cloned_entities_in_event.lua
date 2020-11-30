@@ -96,15 +96,19 @@ end
 
 function flip_rolling_stock(original_entity, cloned_entity)
     if not (original_entity.orientation == cloned_entity.orientation) then
-        cloned_entity.disconnect_rolling_stock(defines.rail_direction.front)
-        cloned_entity.disconnect_rolling_stock(defines.rail_direction.back)
-        cloned_entity.rotate()
-        cloned_entity.connect_rolling_stock(defines.rail_direction.front)
-        cloned_entity.connect_rolling_stock(defines.rail_direction.back)
+        -- check if probably backwards (true backwards is 0.5 delta)
+        if math.abs(original_entity.orientation - cloned_entity.orientation) > 0.4 then
+            cloned_entity.disconnect_rolling_stock(defines.rail_direction.front)
+            cloned_entity.disconnect_rolling_stock(defines.rail_direction.back)
+            cloned_entity.rotate()
+            cloned_entity.connect_rolling_stock(defines.rail_direction.front)
+            cloned_entity.connect_rolling_stock(defines.rail_direction.back)
+        end
     end
-    --[[We don't know which way we are connected, and we can't be sure that the other rolling stock have been cloned yet]]
-    --[[The only edge case we could handle now is the one where we are both the front and back of this train IE: this train is 1 rolling stock long]]
-    cloned_entity.train.manual_mode = original_entity.train.manual_mode
+    --[[We don't know which way we are connected, and we can't be sure that the
+        other rolling stock have been cloned yet]]
+    --[[The only edge case we could handle now is the one where we are both the
+        front and back of this train IE: this train is 1 rolling stock long]]
 end
 
 script.on_event(defines.events.on_entity_cloned, function(event)

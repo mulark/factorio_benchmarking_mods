@@ -76,6 +76,27 @@ local function convert_box_to_offsets(direction_to_copy_index, bounding_box)
     return tpx,tpy
 end
 
+function job_common_pool(job)
+    job.entity_pool = job.player.surface.find_entities_filtered{area=job.bounding_box, type = LITE_CLONING_TYPES, invert = true}
+    job.high_priority_pool = {}
+    job.rolling_stock_pool = {}
+    for k,v in pairs(job.entity_pool) do
+        if not v.can_be_destroyed() then
+            -- collect up rails with trains on them
+            job.high_priority_pool[k] = v
+            job.entity_pool[k] = nil
+        end
+        if is_rolling_stock(v.type) then
+            -- collect up rolling stock
+            job.rolling_stock_pool[k] = v
+            job.entity_pool[k] = nil
+        end
+    end
+
+
+    job.lite_entity_pool = job.player.surface.find_entities_filtered{area=job.bounding_box, type = LITE_CLONING_TYPES}
+end
+
 function job_create_lite(times_to_paste, dir_to_copy_index, chunk_align, player, respect_logistics)
     if (debug_logging) then
         log("starting to create a lite job")
@@ -91,8 +112,7 @@ function job_create_lite(times_to_paste, dir_to_copy_index, chunk_align, player,
     if job.bounding_box.left_top.y == job.bounding_box.right_bottom.y then
         return false
     end
-    job.entity_pool = player.surface.find_entities_filtered{area=job.bounding_box, type = LITE_CLONING_TYPES, invert = true}
-    job.lite_entity_pool = player.surface.find_entities_filtered{area=job.bounding_box, type = LITE_CLONING_TYPES}
+    job_common_pool(job)
     job.times_to_paste = times_to_paste
     job.tiles_to_paste_x, job.tiles_to_paste_y = 0
     job.tiles_to_paste_x, job.tiles_to_paste_y = convert_box_to_offsets(dir_to_copy_index, job.bounding_box)
@@ -121,8 +141,9 @@ function job_create(player)
     job.custom_tile_paste_length_flag = custom_tile_paste_length_flag
     local temp_ent_pool = player.surface.find_entities_filtered{area=job.bounding_box, type = LITE_CLONING_TYPES, invert = true}
     local gui_dropdown_index = frame_flow["region-cloner_control-window"]["region-cloner_drop_down_table"]["region-cloner_direction-to-copy"].selected_index
-    job.entity_pool = temp_ent_pool
-    job.lite_entity_pool = player.surface.find_entities_filtered{area=job.bounding_box, type = LITE_CLONING_TYPES}
+
+    job_common_pool(job)
+
     job.times_to_paste = tonumber(mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_drop_down_table"]["number_of_copies"].text)
 
     if (job.custom_tile_paste_length_flag) then
@@ -133,7 +154,6 @@ function job_create(player)
         job.tiles_to_paste_x, job.tiles_to_paste_y = convert_box_to_offsets(gui_dropdown_index, job.bounding_box)
         job.tiles_to_paste_x, job.tiles_to_paste_y = clean_entity_pool_and_selectively_correct_tile_paste_length_for_rail_grid(temp_ent_pool, job.tiles_to_paste_x, job.tiles_to_paste_y, job.custom_tile_paste_length_flag, job.player)
     end
-
     local advanced_clear_paste_area_table = advanced_settings_gui[GUI_ELEMENT_PREFIX .. "advanced_clear_paste_area_table"]
     job.clear_normal_entities = advanced_clear_paste_area_table[GUI_ELEMENT_PREFIX .. "clear_normal_entities"].state
     job.clear_resource_entities = advanced_clear_paste_area_table[GUI_ELEMENT_PREFIX .. "clear_resource_entities"].state
