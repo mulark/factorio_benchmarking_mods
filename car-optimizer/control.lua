@@ -6,6 +6,9 @@ local function round_to_closest_tile_with_offset(x)
 end
 
 function toggle_cars(entity)
+    if not entity then
+        return
+    end
     if (entity.type ~= "car") then
         return
     end

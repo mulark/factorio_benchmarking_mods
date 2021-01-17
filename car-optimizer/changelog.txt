@@ -1,3 +1,6 @@
+0.0.5:
+Fix attempting to toggle a nil car.
+
 0.0.4:
 Update for 1.1
 
