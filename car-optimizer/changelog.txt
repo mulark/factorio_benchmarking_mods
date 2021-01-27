@@ -1,3 +1,6 @@
+0.0.6:
+Several fixes identified by Pi-C
+
 0.0.5:
 Fix attempting to toggle a nil car.
 
