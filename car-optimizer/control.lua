@@ -43,13 +43,19 @@ end
 function handle_event(event)
     local entity = event.created_entity or	-- on_built events
                  event.entity			-- on_player_driving_changed_state
-
-    if entity.type == "car" then
-    	toggle_cars(entity)
-    else
-        find_cars_for_transport_belt(entity)
+    -- Nuking a car may mean the car doesn't exist when we get here
+    if entity then
+        if entity.type == "car" then
+        	toggle_cars(entity)
+        else
+            find_cars_for_transport_belt(entity)
+        end
     end
 end
+
+script.on_event(defines.events.on_player_driving_changed_state, function(event)
+    handle_event(event)
+end)
 
 script.on_event(defines.events.on_built_entity, function(event)
     handle_event(event)

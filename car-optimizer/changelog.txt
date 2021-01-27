@@ -1,3 +1,6 @@
+0.0.7:
+Forgot a event and identified an issue when nuking modded car
+
 0.0.6:
 Several fixes identified by Pi-C
 
