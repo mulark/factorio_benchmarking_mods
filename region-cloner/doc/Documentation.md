@@ -12,19 +12,7 @@ Region Cloner excels in the following areas:
 * Cloning inserters and preserving their pickup/drop targets.
 
 ## Supported versions
-Region Cloner versions are noted as follows:
-```
-1.2.0
-{major_version}.{feature_version}.{patch_version}
-```
-For major_version, this corresponds to the most recent Factorio stable version following this rule:
-```
-0.16: major_version 0
-0.17: major_version 1
-...
-```
-If compatiblity is not broken, the major version remains the same. (All region cloner version starting with major version 1 must be compatible with 0.17, and they will also be compatible with Factorio version 0.18 should there be no 2.X release.
-Feature versions denote that a major feature was added, removed, or changed significantly.
+Region cloner supports the latest Factorio version, and failure to do so should be considered a bug, and reported.
 
 ## Features
 Region cloner comes with several features that allow for quick and correct cloning.
