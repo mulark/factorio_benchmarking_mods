@@ -79,7 +79,7 @@ end
 function job_common_pool(job)
     job.entity_pool = job.player.surface.find_entities_filtered{area=job.bounding_box, type = LITE_CLONING_TYPES, invert = true}
     job.high_priority_pool = {}
-    job.rolling_stock_pool = {}
+    job.moving_rolling_stock_pool = {}
     for k,v in pairs(job.entity_pool) do
         if not v.can_be_destroyed() then
             -- collect up rails with trains on them
@@ -87,9 +87,11 @@ function job_common_pool(job)
             job.entity_pool[k] = nil
         end
         if is_rolling_stock(v.type) then
-            -- collect up rolling stock
-            job.rolling_stock_pool[k] = v
-            job.entity_pool[k] = nil
+            if v.train.speed ~= 0 then
+                -- collect up rolling stock
+                job.moving_rolling_stock_pool[k] = v
+                job.entity_pool[k] = nil
+            end
         end
     end
 
@@ -119,6 +121,26 @@ function job_create_lite(times_to_paste, dir_to_copy_index, chunk_align, player,
     job.tiles_to_paste_x, job.tiles_to_paste_y = clean_entity_pool_and_selectively_correct_tile_paste_length_for_rail_grid(job.entity_pool, job.tiles_to_paste_x, job.tiles_to_paste_y, false, job.player)
     job.clear_normal_entities = true
     job.clear_resource_entities = true
+    local srctilex
+    local srctiley
+    if job.tiles_to_paste_x > 0 then
+        srctilex = job.bounding_box.right_bottom.x
+    else
+        srctilex = job.bounding_box.left_top.x
+    end
+    if job.tiles_to_paste_y > 0 then
+        srctiley = job.bounding_box.right_bottom.y
+    else
+        srctiley = job.bounding_box.left_top.y
+    end
+    if (math.abs(srctilex + job.times_to_paste * job.tiles_to_paste_x) > 1000000) then
+        player.print("Parameters would result in cloning outside of map")
+        return false
+    end
+    if (math.abs(srctiley + job.times_to_paste * job.tiles_to_paste_y) > 1000000) then
+        player.print("Parameters would result in cloning outside of map")
+        return false
+    end
     if (debug_logging) then
         log("finished lite job creation")
     end
@@ -157,6 +179,26 @@ function job_create(player)
     local advanced_clear_paste_area_table = advanced_settings_gui[GUI_ELEMENT_PREFIX .. "advanced_clear_paste_area_table"]
     job.clear_normal_entities = advanced_clear_paste_area_table[GUI_ELEMENT_PREFIX .. "clear_normal_entities"].state
     job.clear_resource_entities = advanced_clear_paste_area_table[GUI_ELEMENT_PREFIX .. "clear_resource_entities"].state
+    local srctilex
+    local srctiley
+    if job.tiles_to_paste_x > 0 then
+        srctilex = job.bounding_box.right_bottom.x
+    else
+        srctilex = job.bounding_box.left_top.x
+    end
+    if job.tiles_to_paste_y > 0 then
+        srctiley = job.bounding_box.right_bottom.y
+    else
+        srctiley = job.bounding_box.left_top.y
+    end
+    if (math.abs(srctilex + job.times_to_paste * job.tiles_to_paste_x) > 1000000) then
+        player.print("Parameters would result in cloning outside of map")
+        return false
+    end
+    if (math.abs(srctiley + job.times_to_paste * job.tiles_to_paste_y) > 1000000) then
+        player.print("Parameters would result in cloning outside of map")
+        return false
+    end
     if (debug_logging) then
         log("finished job creation")
     end

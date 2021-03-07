@@ -83,6 +83,13 @@ function copy_lite_entity_pool(player, lite_entity_pool, vector, surface, force)
             if (is_rolling_stock(event.source.type)) then
                 flip_rolling_stock(event.source, event.destination)
                 -- Clone the remaining rolling stock properties
+                -- Handles arty ammo and loco fuel too, crappy API
+                if (event.destination.get_inventory(defines.inventory.cargo_wagon)) then
+                    for k, v in pairs(event.source.get_inventory(defines.inventory.cargo_wagon).get_contents()) do
+                        event.destination.get_inventory(defines.inventory.cargo_wagon).insert({name = k, count = v})
+                    end
+                end
+                -- Copy inv before copying bar (possibly)
                 event.destination.copy_settings(event.source)
                 event.destination.train.manual_mode = event.source.train.manual_mode
                 event.destination.train.schedule = event.source.train.schedule
@@ -97,12 +104,7 @@ function copy_lite_entity_pool(player, lite_entity_pool, vector, surface, force)
                         event.destination.fluidbox[i] = event.source.fluidbox[i]
                     end
                 end
-                -- Handles arty ammo and loco fuel too, crappy API
-                if (event.destination.get_inventory(defines.inventory.cargo_wagon)) then
-                    for k, v in pairs(event.source.get_inventory(defines.inventory.cargo_wagon).get_contents()) do
-                        event.destination.get_inventory(defines.inventory.cargo_wagon).insert({name = k, count = v})
-                    end
-                end
+
             end
         end
     end

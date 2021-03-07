@@ -1,3 +1,6 @@
+2.1.1:
+Handle case where clone would exceed the end of the map.
+
 2.1.0:
 Revert back to cloning rolling stock manually due to buggy vanilla implementation
 
