@@ -2,7 +2,7 @@
 A collection of mods to streamline Factorio benchmarking.
 
 ### car-optimizer
-Sets cars to inactive if there's no driver and they're not on a belt. Unreleased.
+Sets cars to inactive if there's no driver and they're not on a belt.
 
 ### creative-world-plus
 An empty world for design testing. Includes a map-gen preset for quickly turning everything off too.
