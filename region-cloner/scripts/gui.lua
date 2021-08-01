@@ -42,7 +42,6 @@ gui.create_gui = function (player)
 	
 	--[Adding the "progress bar" checkbox]
 	advanced_settings_gui.add{type="checkbox", caption="Progress bar", state=false, name=GUI_ELEMENT_PREFIX .. "progress_bar", tooltip="The progress bar spends an additional 1 tick for each copy"}
-	advanced_settings_gui.add{type="checkbox", caption="Progress bar. Detailed log", state=false, name=GUI_ELEMENT_PREFIX .. "detailed_log", tooltip="The detailed log spends an additional 4 tick for each copy"}
 
     mod_frame.visible = false
     local coord_gui_table = mod_frame.add{type="table", column_count=3, name=GUI_ELEMENT_PREFIX .. "coordinate-table"}

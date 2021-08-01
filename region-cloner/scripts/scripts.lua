@@ -371,48 +371,6 @@ local function region_cloner_for(EventData)
 	end
 end
 
-function region_cloner_drum_machine(EventData)
-	if region_cloner_drum == 0 then
-		if region_cloner_x < region_cloner_xmax then
-			region_cloner_x = region_cloner_x + 1
-			local text = string.format("Copied %d out of %d clear_paste_area", region_cloner_x, region_cloner_xmax);	
-			game.print( text, {0,1,1})
-			clear_paste_area(region_cloner_job.tiles_to_paste_x, region_cloner_job.tiles_to_paste_y, region_cloner_x, region_cloner_job.bounding_box, forces_to_clear_paste_area, region_cloner_job.surface, region_cloner_job.entity_pool)
-			validate_entity_pool(region_cloner_job.high_priority_pool)
-			validate_entity_pool(region_cloner_job.moving_rolling_stock_pool)
-			validate_entity_pool(region_cloner_job.entity_pool)
-			validate_entity_pool(region_cloner_job.lite_entity_pool)
-			region_cloner_drum = 1
-		else
-			script.on_nth_tick(EventData.nth_tick,nil)
-		end
-	elseif region_cloner_drum == 1 then
-		local text = string.format("Copied %d out of %d high prio", region_cloner_x, region_cloner_xmax);	
-		game.print( text, {0,1,1})
-		-- High prio
-		copy_entity_pool(region_cloner_job.player, region_cloner_job.high_priority_pool, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.surface, region_cloner_job.force)
-    	region_cloner_drum = 2
-	elseif region_cloner_drum == 2 then
-		local text = string.format("Copied %d out of %d rolling stock", region_cloner_x, region_cloner_xmax);	
-		game.print( text, {0,1,1})
-		-- rolling stock
-		copy_lite_entity_pool(region_cloner_job.player, region_cloner_job.moving_rolling_stock_pool, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.surface, region_cloner_job.force)
-		region_cloner_drum = 3
-	elseif region_cloner_drum == 3 then
-		local text = string.format("Copied %d out of %d power poles", region_cloner_x, region_cloner_xmax);	
-		game.print( text, {0,1,1})
-		-- power poles
-		copy_lite_entity_pool(region_cloner_job.player, region_cloner_job.lite_entity_pool, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.surface, region_cloner_job.force)
-		region_cloner_drum = 4
-	elseif region_cloner_drum == 4 then
-		local text = string.format("Copied %d out of %d rest", region_cloner_x, region_cloner_xmax);	
-		game.print( text, {0,1,1})
-		-- rest
-		copy_entity_pool(region_cloner_job.player, region_cloner_job.entity_pool, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.surface, region_cloner_job.force)
-		region_cloner_drum = 0
-	end 
-end
-
 function run_job(job)
     if job then
         local forces_to_clear_paste_area = {"enemy"}
@@ -425,20 +383,13 @@ function run_job(job)
 		
 		region_cloner_xmax = job.times_to_paste
 		region_cloner_job = job
-		region_cloner_drum = 0
 		progress_bar = mod_gui.get_frame_flow(region_cloner_job.player)[GUI_ELEMENT_PREFIX .. "advanced_view_pane"][GUI_ELEMENT_PREFIX .. "progress_bar"].state
-		detailed_log = mod_gui.get_frame_flow(region_cloner_job.player)[GUI_ELEMENT_PREFIX .. "advanced_view_pane"][GUI_ELEMENT_PREFIX .. "detailed_log"].state
 		if progress_bar then
 			--[With a progress bar]
 			region_cloner_x = 0
 			local text = string.format("Copied %d out of %d", region_cloner_x, region_cloner_xmax);	
 			game.print( text, {0,1,1})
-			
-			if detailed_log then
-				script.on_nth_tick(1, region_cloner_drum_machine)
-			else
-				script.on_nth_tick(1, region_cloner_for)   
-			end
+			script.on_nth_tick(1, region_cloner_for)   
 		else
 			--[Without a progress bar]
 			for x=1, region_cloner_xmax do
