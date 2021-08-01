@@ -343,20 +343,41 @@ function issue_copy_paste(player)
     end
 end
 
-function region_cloner_main_for()
-	clear_paste_area(region_cloner_job.tiles_to_paste_x, region_cloner_job.tiles_to_paste_y, region_cloner_x, region_cloner_job.bounding_box, forces_to_clear_paste_area, region_cloner_job.surface, region_cloner_job.entity_pool)
-    validate_entity_pool(region_cloner_job.high_priority_pool)
-    validate_entity_pool(region_cloner_job.moving_rolling_stock_pool)
-    validate_entity_pool(region_cloner_job.entity_pool)
-    validate_entity_pool(region_cloner_job.lite_entity_pool)
-    -- High prio
-    copy_entity_pool(region_cloner_job.player, region_cloner_job.high_priority_pool, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.surface, region_cloner_job.force)
-    -- rolling stock
-    copy_lite_entity_pool(region_cloner_job.player, region_cloner_job.moving_rolling_stock_pool, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.surface, region_cloner_job.force)
-    -- power poles
-    copy_lite_entity_pool(region_cloner_job.player, region_cloner_job.lite_entity_pool, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.surface, region_cloner_job.force)
-    -- rest
-    copy_entity_pool(region_cloner_job.player, region_cloner_job.entity_pool, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.surface, region_cloner_job.force)
+
+function hasbit(x, p)
+	--[Bitwise and]
+	return x % (p + p) >= p       
+end
+region_cloner_clear_paste_area = 0x01
+region_cloner_high_prio = 0x02
+region_cloner_rolling_stock = 0x04
+region_cloner_power_poles = 0x08
+region_cloner_rest = 0x10
+function region_cloner_main_for(step)
+	if hasbit(step, region_cloner_clear_paste_area) then
+		-- clear paste area
+		clear_paste_area(region_cloner_job.tiles_to_paste_x, region_cloner_job.tiles_to_paste_y, region_cloner_x, region_cloner_job.bounding_box, forces_to_clear_paste_area, region_cloner_job.surface, region_cloner_job.entity_pool)
+		validate_entity_pool(region_cloner_job.high_priority_pool)
+		validate_entity_pool(region_cloner_job.moving_rolling_stock_pool)
+		validate_entity_pool(region_cloner_job.entity_pool)
+		validate_entity_pool(region_cloner_job.lite_entity_pool)
+	end
+	if hasbit(step, region_cloner_high_prio) then
+		-- High prio
+		copy_entity_pool(region_cloner_job.player, region_cloner_job.high_priority_pool, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.surface, region_cloner_job.force)
+	end
+	if hasbit(step, region_cloner_rolling_stock) then
+		-- rolling stock
+		copy_lite_entity_pool(region_cloner_job.player, region_cloner_job.moving_rolling_stock_pool, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.surface, region_cloner_job.force)
+	end
+	if hasbit(step, region_cloner_power_poles) then
+		-- power poles
+		copy_lite_entity_pool(region_cloner_job.player, region_cloner_job.lite_entity_pool, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.surface, region_cloner_job.force)
+	end
+	if hasbit(step, region_cloner_rest) then
+		-- rest
+		copy_entity_pool(region_cloner_job.player, region_cloner_job.entity_pool, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.surface, region_cloner_job.force)
+	end
 end
 
 local function region_cloner_for(EventData)
@@ -365,7 +386,7 @@ local function region_cloner_for(EventData)
 		region_cloner_x = region_cloner_x + 1
 		local text = string.format("Copied %d out of %d", region_cloner_x, region_cloner_xmax);	
 		game.print( text, {0,1,1})
-		region_cloner_main_for()
+		region_cloner_main_for(0xff)
 	else
 		script.on_nth_tick(EventData.nth_tick,nil)
 	end
@@ -377,11 +398,7 @@ function region_cloner_drum_machine(EventData)
 			region_cloner_x = region_cloner_x + 1
 			local text = string.format("Copied %d out of %d clear_paste_area", region_cloner_x, region_cloner_xmax);	
 			game.print( text, {0,1,1})
-			clear_paste_area(region_cloner_job.tiles_to_paste_x, region_cloner_job.tiles_to_paste_y, region_cloner_x, region_cloner_job.bounding_box, forces_to_clear_paste_area, region_cloner_job.surface, region_cloner_job.entity_pool)
-			validate_entity_pool(region_cloner_job.high_priority_pool)
-			validate_entity_pool(region_cloner_job.moving_rolling_stock_pool)
-			validate_entity_pool(region_cloner_job.entity_pool)
-			validate_entity_pool(region_cloner_job.lite_entity_pool)
+			region_cloner_main_for(region_cloner_clear_paste_area)
 			region_cloner_drum = 1
 		else
 			script.on_nth_tick(EventData.nth_tick,nil)
@@ -390,25 +407,25 @@ function region_cloner_drum_machine(EventData)
 		local text = string.format("Copied %d out of %d high prio", region_cloner_x, region_cloner_xmax);	
 		game.print( text, {0,1,1})
 		-- High prio
-		copy_entity_pool(region_cloner_job.player, region_cloner_job.high_priority_pool, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.surface, region_cloner_job.force)
+		region_cloner_main_for(region_cloner_high_prio)
     	region_cloner_drum = 2
 	elseif region_cloner_drum == 2 then
 		local text = string.format("Copied %d out of %d rolling stock", region_cloner_x, region_cloner_xmax);	
 		game.print( text, {0,1,1})
 		-- rolling stock
-		copy_lite_entity_pool(region_cloner_job.player, region_cloner_job.moving_rolling_stock_pool, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.surface, region_cloner_job.force)
+		region_cloner_main_for(region_cloner_rolling_stock)
 		region_cloner_drum = 3
 	elseif region_cloner_drum == 3 then
 		local text = string.format("Copied %d out of %d power poles", region_cloner_x, region_cloner_xmax);	
 		game.print( text, {0,1,1})
 		-- power poles
-		copy_lite_entity_pool(region_cloner_job.player, region_cloner_job.lite_entity_pool, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.surface, region_cloner_job.force)
+		region_cloner_main_for(region_cloner_power_poles)
 		region_cloner_drum = 4
 	elseif region_cloner_drum == 4 then
 		local text = string.format("Copied %d out of %d rest", region_cloner_x, region_cloner_xmax);	
 		game.print( text, {0,1,1})
 		-- rest
-		copy_entity_pool(region_cloner_job.player, region_cloner_job.entity_pool, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.surface, region_cloner_job.force)
+		region_cloner_main_for(region_cloner_rest)
 		region_cloner_drum = 0
 	end 
 end
@@ -443,7 +460,7 @@ function run_job(job)
 			--[Without a progress bar]
 			for x=1, region_cloner_xmax do
 				region_cloner_x = x
-				region_cloner_main_for()
+				region_cloner_main_for(0xff)
 			end
 		end
     end
