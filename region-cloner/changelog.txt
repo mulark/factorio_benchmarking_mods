@@ -1,3 +1,6 @@
+2.1.2:
+Make it possible to clone across multiple ticks by printing progress. Increases odds of any pastes breaking but lets you see if your clone will complete within a reasonable amount of time. Thanks to @flameSla for this contribution.
+
 2.1.1:
 Handle case where clone would exceed the end of the map.
 
