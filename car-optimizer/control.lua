@@ -35,8 +35,6 @@ function find_cars_for_transport_belt(belt_ent)
     local possible_cars_found = surface.find_entities_filtered({type = "car", position = belt_ent.position})
     for _, possible_car in pairs(possible_cars_found) do
         toggle_cars(possible_car)
-        if possible_car.type == "car" then
-        end
     end
 end
 
@@ -53,6 +51,8 @@ function handle_event(event)
     end
 end
 
+--[[ Lots of code duplication due to dumbness of Factorio not allowing multiple
+    events with filters at once ]]
 script.on_event(defines.events.on_player_driving_changed_state, function(event)
     handle_event(event)
 end)
