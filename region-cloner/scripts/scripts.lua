@@ -445,7 +445,7 @@ function run_job(job)
 		region_cloner_drum = 0
 		progress_bar = mod_gui.get_frame_flow(region_cloner_job.player)[GUI_ELEMENT_PREFIX .. "advanced_view_pane"][GUI_ELEMENT_PREFIX .. "progress_bar"].state
 		detailed_log = mod_gui.get_frame_flow(region_cloner_job.player)[GUI_ELEMENT_PREFIX .. "advanced_view_pane"][GUI_ELEMENT_PREFIX .. "detailed_log"].state
-		if progress_bars then
+		if progress_bar or detailed_log then
 			--[With a progress bar]
 			region_cloner_x = 0
 			local text = string.format("Copied %d out of %d", region_cloner_x, region_cloner_xmax);
