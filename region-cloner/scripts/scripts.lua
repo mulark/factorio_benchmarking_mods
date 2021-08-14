@@ -248,15 +248,17 @@ local function clear_paste_area(tpx, tpy, current_paste, bounding_box, forces_to
         if (debug_logging) then
             log("first paste checks... ow?")
         end
+        local have_entity_ids = {}
+        for _,ent in pairs(entity_pool) do
+            if ent.unit_number then
+                have_entity_ids[ent.unit_number] = true
+            end
+        end
         for key,found_ent in pairs (possible_entities_to_destroy) do
-            if (found_ent.valid) then
-                --TODO this is a hack for now
+            if found_ent.valid then
                 if found_ent.type ~= "resource" then
-                    for _,ent in pairs(entity_pool) do
-                        if (found_ent == ent) then
-                            --If any entity we find in the possible area to destroy entities is part of the set we intend to clone from, dont destroy that entity.
-                            possible_entities_to_destroy[key] = nil
-                        end
+                    if have_entity_ids[found_ent.unit_number] then
+                        possible_entities_to_destroy[key] = nil
                     end
                 end
             end
