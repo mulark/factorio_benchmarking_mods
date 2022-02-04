@@ -141,6 +141,9 @@ function validate_coordinates_and_update_view(player, restrict_area_bool)
     local old_top = tonumber(current_view["left_top_y"].text)
     local old_right = tonumber(current_view["right_bottom_x"].text)
     local old_bottom = tonumber(current_view["right_bottom_y"].text)
+    if debug_logging then
+        log("entered validate_coordinates_and_update_view()")
+    end
     if (old_left and old_top and old_bottom and old_right) then
         local box = construct_safe_bounding_box(old_left, old_top, old_right, old_bottom)
         if (old_left == old_right or old_top == old_bottom) and not (old_top == 0 and old_left == 0 and old_right == 0 and old_bottom == 0) then
@@ -160,9 +163,6 @@ function validate_coordinates_and_update_view(player, restrict_area_bool)
     else
         --No longer needed with numeric text field GUIs
         player.print("A coordinate is not a number!")
-    if debug_logging then
-        log("entered validate_coordinates_and_update_view()")
-    end
         return false
     end
 end
@@ -233,6 +233,8 @@ local function convert_bounding_box_to_paste_region(vector, bounding_box)
     return modified_box
 end
 
+-- Entities which we have to destroy after all clones are completed
+source_entities_to_destroy = {}
 local function clear_paste_area(tpx, tpy, current_paste, bounding_box, forces_to_clear, surface, entity_pool)
     if (debug_logging) then
         log("entered clear_paste_area()")
@@ -259,6 +261,7 @@ local function clear_paste_area(tpx, tpy, current_paste, bounding_box, forces_to
                 if found_ent.type ~= "resource" then
                     if have_entity_ids[found_ent.unit_number] then
                         possible_entities_to_destroy[key] = nil
+                        table.insert(source_entities_to_destroy, found_ent)
                     end
                 end
             end
@@ -434,7 +437,7 @@ end
 
 function run_job(job)
     if job then
-        local forces_to_clear_paste_area = {"enemy"}
+        forces_to_clear_paste_area = {"enemy"}
         if (job.clear_normal_entities) then
             table.insert(forces_to_clear_paste_area, "player")
         end
@@ -465,5 +468,15 @@ function run_job(job)
 				region_cloner_main_for(0xff)
 			end
 		end
+
+        -- After cloning all things, then destroy any source entities that were in the way of a paste
+        -- Does not persist if you save & exit during a gradual paste
+        for _, ent in pairs(source_entities_to_destroy) do
+            if debug_logging then
+                log("destroying " .. ent.name)
+            end
+            ent.destroy()
+        end
+        source_entities_to_destroy = {}
     end
 end

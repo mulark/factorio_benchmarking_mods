@@ -1,3 +1,6 @@
+2.1.4:
+Improved logic for overlapping paste areas, fixes issues with beacons stacking on same tile despite clear paste area being set
+
 2.1.3:
 Optimized clearing paste area
 
