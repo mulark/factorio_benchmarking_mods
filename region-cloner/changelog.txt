@@ -1,3 +1,6 @@
+2.2.0:
+Added charting of pasted area
+
 2.1.4:
 Improved logic for overlapping paste areas, fixes issues with beacons stacking on same tile despite clear paste area being set
 

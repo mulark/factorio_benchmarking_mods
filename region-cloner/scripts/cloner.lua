@@ -50,11 +50,30 @@ function correct_cloned_inserter_targets(entity_pool, vector, surface, force)
     end
 end
 
+function smart_chart(player, tpx, tpy, current_paste, bounding_box)
+    local new_box = convert_bounding_box_to_current_paste_region(tpx, tpy, current_paste, bounding_box)
+    player.force.chart(player.surface, new_box)
+end
+
+function convert_bounding_box_to_current_paste_region(tpx, tpy, current_paste, bounding_box)
+    local modified_box = {}
+    local left_top = {}
+    local right_bottom = {}
+    left_top["x"] = bounding_box.left_top.x + (tpx * current_paste)
+    left_top["y"] = bounding_box.left_top.y + (tpy * current_paste)
+    --[[Subtract 0.01 tiles off of the returned bounding_box because it will chart the next chunk over if bounding_box is at the tile border]]
+    right_bottom["x"] = bounding_box.right_bottom.x + (tpx * current_paste) - 0.01
+    right_bottom["y"] = bounding_box.right_bottom.y + (tpy * current_paste) - 0.01
+    modified_box["left_top"] = left_top
+    modified_box["right_bottom"] = right_bottom
+    return modified_box
+end
+
 function copy_entity_pool(player, entity_pool, vector, surface, force)
     if (debug_logging) then
         log("entered copy_entity_pool()")
     end
-    surface.clone_entities({entities=entity_pool, destination_offset=vector, destination_surface=surface, destination_force=force})
+    surface.clone_entities({entities=entity_pool, destination_offset=vector, destination_surface=surface, destination_force=force, create_build_effect_smoke=false})
     correct_cloned_inserter_targets(entity_pool, vector, surface, force)
     if (debug_logging) then
         log("finished copy_entity_pool()")

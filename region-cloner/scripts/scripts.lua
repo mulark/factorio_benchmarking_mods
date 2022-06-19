@@ -469,6 +469,11 @@ function run_job(job)
 			end
 		end
 
+        local x
+        for x=1, job.times_to_paste do
+            smart_chart(job.player, job.tiles_to_paste_x, job.tiles_to_paste_y, x, job.bounding_box)
+        end
+
         -- After cloning all things, then destroy any source entities that were in the way of a paste
         -- Does not persist if you save & exit during a gradual paste
         for _, ent in pairs(source_entities_to_destroy) do
