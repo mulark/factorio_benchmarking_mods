@@ -1,3 +1,6 @@
+2.2.2:
+Fix collision box of walls when cloning into ungenerated chunks
+
 2.2.1:
 Bugfix if cursor is valid for read before trying to read it.
 
