@@ -71,7 +71,8 @@ end)
 
 script.on_event({defines.events.on_player_selected_area}, function(event)
     local player = game.players[event.player_index]
-    if (player.cursor_stack.name == "region-cloner_selection-tool") then
+    local stack = player.cursor_stack
+    if (stack.valid_for_read and stack.name == "region-cloner_selection-tool") then
         local coord_table = mod_gui.get_frame_flow(player)[GUI_ELEMENT_PREFIX .. "control-window"][GUI_ELEMENT_PREFIX .. "coordinate-table"]
         if coord_table["left_top_x"] then
             coord_table["left_top_x"].text = tostring(math.floor(event.area.left_top.x))

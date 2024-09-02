@@ -1,3 +1,6 @@
+2.2.1:
+Bugfix if cursor is valid for read before trying to read it.
+
 2.2.0:
 Added charting of pasted area
 
