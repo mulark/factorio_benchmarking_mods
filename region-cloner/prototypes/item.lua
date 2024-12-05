@@ -6,7 +6,6 @@ data:extend(
         name = "region-cloner_selection-tool",
         icon_size = 128,
         icon = "__region-cloner__/graphics/lazy-bastard.png",
-        flags = {"hidden"},
         subgroup = "tool",
         order = "a",
         stack_size = 1,
@@ -16,6 +15,16 @@ data:extend(
         alt_selection_color = {r = 1, g = 0, b = 0},
         alt_selection_mode = {"any-entity", "deconstruct"},
         alt_selection_cursor_box_type = "not-allowed",
-        always_include_tiles = true
+        always_include_tiles = true,
+        select = {
+            border_color = {},
+            cursor_box_type = "copy",
+            mode = "any-entity", "any-tile"
+        },
+        alt_select = {
+            border_color = {},
+            cursor_box_type = "copy",
+            mode = "any-entity", "any-tile"
+        }
     }
 })

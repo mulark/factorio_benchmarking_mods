@@ -1,13 +1,13 @@
 GUI_ELEMENT_PREFIX = "region-cloner_"
 
-global.combinators_to_destroy_in_next_tick = {}
+storage.combinators_to_destroy_in_next_tick = {}
 
 debug_logging = false
 
 -- Electric poles need nothing from clone_entities and
 -- it ends up being significantly faster to just create_entity instead.
--- NOTE: Moving rolling stock also end up as something lite cloned
-LITE_CLONING_TYPES = {"electric-pole"}
+-- NOTE: Moving rolling stock also end up as something lite cloned - not since region cloner 3.0.0
+LITE_CLONING_TYPES = {}
 
 function has_value(val, tab)
     --Slow path for non-critical comparisons.

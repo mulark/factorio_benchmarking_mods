@@ -56,7 +56,10 @@ script.on_event({defines.events.on_gui_click}, function(event)
             return
         end
         --[[Don't use GUI_ELEMENT_PREFIX since this item is not a GUI ya dingus!]]
-        player.get_main_inventory().remove("region-cloner_selection-tool")
+        inv = player.get_main_inventory()
+        if inv ~= nil then
+            inv.remove("region-cloner_selection-tool")
+        end
         player.cursor_stack.set_stack("region-cloner_selection-tool")
     end
     if (clicked_on == GUI_ELEMENT_PREFIX .. "restrict_selection_area_to_entities") then

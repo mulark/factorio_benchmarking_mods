@@ -1,5 +1,6 @@
 require("scripts.common")
 
+--[[
 function copy_signals_in_flight(original_entity, cloned_entity)
     --Entities across surfaces can connect wires together, excepting copper wire
     --This doesnt copy across surfaces, I think it's cause it depends on which one is trying to connect to the other.
@@ -12,8 +13,8 @@ function copy_signals_in_flight(original_entity, cloned_entity)
         merged_signals_clone = cloned_entity.get_merged_signals(connector)
         merged_signals_orig = original_entity.get_merged_signals(connector)
     else
-        merged_signals_clone = cloned_entity.get_merged_signals()
-        merged_signals_orig = original_entity.get_merged_signals()
+        merged_signals_clone = cloned_entity.get_signals()
+        merged_signals_orig = original_entity.get_signals()
     end
     if (not merged_signals_clone and merged_signals_orig) then
         local cloned_entity_original_position = cloned_entity.position
@@ -25,11 +26,13 @@ function copy_signals_in_flight(original_entity, cloned_entity)
         cloned_entity.disconnect_neighbour({wire=defines.wire_type.green, target_entity = original_entity, source_circuit_id = connector, target_circuit_id = connector})
     end
 end
+]]
 
+--[[
 function copy_circuit_network_reference_connections(original_entity, cloned_entity)
     if (original_entity.circuit_connection_definitions) then
-        --[[Add 3 arbitrary connections as when we do this action the number of circuit_connection_definitions can change. In practice only 2 will be needed for 99.99% of cases]]
-        --[[1 connection will be used per wire type when copying signals. Bumping it up to 5]]
+        --[[Add 3 arbitrary connections as when we do this action the number of circuit_connection_definitions can change. In practice only 2 will be needed for 99.99% of cases
+        --[[1 connection will be used per wire type when copying signals. Bumping it up to 5
         for x=1, (#original_entity.circuit_connection_definitions + 5) do
             if (original_entity.circuit_connection_definitions[x]) then
                 local targetent = original_entity.circuit_connection_definitions[x].target_entity
@@ -39,7 +42,7 @@ function copy_circuit_network_reference_connections(original_entity, cloned_enti
                 if (targetnewent) then
                     local connection_formed = cloned_entity.connect_neighbour({target_entity = targetnewent, wire=original_entity.circuit_connection_definitions[x].wire, source_circuit_id=original_entity.circuit_connection_definitions[x].source_circuit_id, target_circuit_id=original_entity.circuit_connection_definitions[x].target_circuit_id})
                     if not (connection_formed) then
-                        --[[Possibly these were too far apart, you can make them connected but far apart with teleporting]]
+                        --[[Possibly these were too far apart, you can make them connected but far apart with teleporting
                         local cloned_entity_original_position = cloned_entity.position
                         cloned_entity.teleport(targetnewent.position)
                         cloned_entity.connect_neighbour({target_entity = targetnewent, wire=original_entity.circuit_connection_definitions[x].wire, source_circuit_id=original_entity.circuit_connection_definitions[x].source_circuit_id, target_circuit_id=original_entity.circuit_connection_definitions[x].target_circuit_id})
@@ -93,6 +96,7 @@ function copy_circuit_network_reference_connections(original_entity, cloned_enti
         end
     end
 end
+]]
 
 function flip_rolling_stock(original_entity, cloned_entity)
     if not (original_entity.orientation == cloned_entity.orientation) then
@@ -121,8 +125,8 @@ end
 script.on_event(defines.events.on_entity_cloned, function(event)
     if (event.source.valid and event.destination.valid) then
         if is_circuit_network_connectable(event.source.type) then
-            copy_signals_in_flight(event.source, event.destination)
-            copy_circuit_network_reference_connections(event.source, event.destination)
+            --copy_signals_in_flight(event.source, event.destination)
+            --copy_circuit_network_reference_connections(event.source, event.destination)
         end
         --TODO don't flip rolling stock anymore?
         if is_rolling_stock(event.source.type) then
