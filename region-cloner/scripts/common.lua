@@ -7,7 +7,7 @@ debug_logging = false
 -- Electric poles need nothing from clone_entities and
 -- it ends up being significantly faster to just create_entity instead.
 -- NOTE: Moving rolling stock also end up as something lite cloned - not since region cloner 3.0.0
-LITE_CLONING_TYPES = {}
+LITE_CLONING_TYPES = {"electric-pole"}
 
 function has_value(val, tab)
     --Slow path for non-critical comparisons.

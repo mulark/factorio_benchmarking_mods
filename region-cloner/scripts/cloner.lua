@@ -87,7 +87,7 @@ function copy_lite_entity_pool(player, lite_entity_pool, vector, surface, force)
     -- Pointless code duplication required by 0.18.27, since on_entity_cloned
     -- is no longer available
     for _,original in pairs(lite_entity_pool) do
-        local cloned = surface.create_entity({name=original.name, position = {original.position.x + vector.x, original.position.y + vector.y}, force = force, create_build_effect_smoke = false, direction = original.direction})
+        local cloned = surface.create_entity({name=original.name, position = {original.position.x + vector.x, original.position.y + vector.y}, force = force, create_build_effect_smoke = false, direction = original.direction, quality = original.quality})
         if cloned and original.valid then
             local event = {source=original, destination=cloned}
             if is_circuit_network_connectable(event.source.type) then
