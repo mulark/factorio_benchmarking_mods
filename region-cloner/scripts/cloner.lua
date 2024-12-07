@@ -91,8 +91,7 @@ function copy_lite_entity_pool(player, lite_entity_pool, vector, surface, force)
         if cloned and original.valid then
             local event = {source=original, destination=cloned}
             if is_circuit_network_connectable(event.source.type) then
-                --copy_signals_in_flight(event.source, event.destination)
-                --copy_circuit_network_reference_connections(event.source, event.destination)
+                copy_circuit_network_reference_connections(event.source, event.destination)
             end
             --TODO don't flip rolling stock anymore?
             -- Workaround to handle rolling stock with speed being cloned
