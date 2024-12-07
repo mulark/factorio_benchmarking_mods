@@ -366,6 +366,7 @@ function region_cloner_main_for(step)
 		validate_entity_pool(region_cloner_job.moving_rolling_stock_pool)
 		validate_entity_pool(region_cloner_job.entity_pool)
 		validate_entity_pool(region_cloner_job.lite_entity_pool)
+        copy_tiles(region_cloner_job.player, region_cloner_job.tiles, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.surface)
 	end
 	if hasbit(step, region_cloner_high_prio) then
 		-- High prio

@@ -69,6 +69,21 @@ function convert_bounding_box_to_current_paste_region(tpx, tpy, current_paste, b
     return modified_box
 end
 
+function copy_tiles(player, tiles, vector, surface)
+    local transformed_tiles = {}
+    for _,tile in pairs(tiles) do
+        local transform = {
+            name=tile.name,
+            position={
+                tile.position.x + vector.x,
+                tile.position.y + vector.y
+            }
+        }
+        table.insert(transformed_tiles, transform)
+    end
+    surface.set_tiles(transformed_tiles, true, false)
+end
+
 function copy_entity_pool(player, entity_pool, vector, surface, force)
     if (debug_logging) then
         log("entered copy_entity_pool()")
