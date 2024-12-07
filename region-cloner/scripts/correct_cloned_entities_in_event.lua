@@ -21,7 +21,7 @@ function copy_circuit_network_reference_connections(original_entity, cloned_enti
                         -- Space platforms cloned to empty space means stuff dies leading to these being invalid before we set up the connection
                         -- However, I don't know why sometimes the platform dies completely, and sometimes it doesn't
                         -- it's supposed to be that if a platform is split in two the part without the hub dies
-                        game.print("ERROR: did not get a valid connector reference from " .. serpent.line(cloned_connector) .. " to " .. serpent.line(targetnewent))
+                        --game.print("ERROR: did not get a valid connector reference from " .. serpent.line(cloned_connector) .. " to " .. serpent.line(targetnewent))
                     end
                 end
                 targetent = nil

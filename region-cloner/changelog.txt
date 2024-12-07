@@ -1,4 +1,7 @@
-3.0.0:
+3.0.1:
+Fix all known issues with Factorio 2.0 (may still have unknown issues)
+
+3.0.0: (never released to mod portal)
 Update for Factorio 2.0, WIP
 
 2.2.2:
