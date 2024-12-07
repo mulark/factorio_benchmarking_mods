@@ -104,8 +104,8 @@ function copy_lite_entity_pool(player, lite_entity_pool, vector, surface, force)
                 -- Clone the remaining rolling stock properties
                 -- Handles arty ammo and loco fuel too, crappy API
                 if (event.destination.get_inventory(defines.inventory.cargo_wagon)) then
-                    for k, v in pairs(event.source.get_inventory(defines.inventory.cargo_wagon).get_contents()) do
-                        event.destination.get_inventory(defines.inventory.cargo_wagon).insert({name = k, count = v})
+                    for _,item in pairs(event.source.get_inventory(defines.inventory.cargo_wagon).get_contents()) do
+                        event.destination.get_inventory(defines.inventory.cargo_wagon).insert({name = item.name, count = item.count, quality = item.quality})
                     end
                 end
                 -- Copy inv before copying bar (possibly)
