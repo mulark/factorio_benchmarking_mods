@@ -77,7 +77,7 @@ local function convert_box_to_offsets(direction_to_copy_index, bounding_box)
 end
 
 function job_common_pool(job)
-    job.tiles = job.player.surface.find_tiles_filtered{area=job.bounding_box, collision_mask="ground_tile"}
+    job.tiles = job.player.surface.find_tiles_filtered{area=job.bounding_box}
     job.entity_pool = job.player.surface.find_entities_filtered{area=job.bounding_box, type = LITE_CLONING_TYPES, invert = true}
     job.high_priority_pool = {}
     job.moving_rolling_stock_pool = {}

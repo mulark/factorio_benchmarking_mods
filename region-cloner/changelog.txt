@@ -1,3 +1,6 @@
+3.0.2:
+Clone all tiles, not just ground tiles. Since offshore pumps cloned onto land stop functioning. Including hidden tiles
+
 3.0.1:
 Fix all known issues with Factorio 2.0 (may still have unknown issues)
 

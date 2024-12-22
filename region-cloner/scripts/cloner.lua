@@ -71,6 +71,8 @@ end
 
 function copy_tiles(player, tiles, vector, surface)
     local transformed_tiles = {}
+    local hidden_tiles = {}
+    local double_hidden_tiles = {}
     for _,tile in pairs(tiles) do
         local transform = {
             name=tile.name,
@@ -80,8 +82,34 @@ function copy_tiles(player, tiles, vector, surface)
             }
         }
         table.insert(transformed_tiles, transform)
+        if tile.hidden_tile ~= nil then
+            local hidden = {
+                name=tile.hidden_tile,
+                position={
+                    tile.position.x + vector.x,
+                    tile.position.y + vector.y
+                }
+            }
+            table.insert(hidden_tiles, hidden)
+            if tile.double_hidden_tile ~= nil then
+                local double_hidden = {
+                    name=tile.double_hidden_tile,
+                    position={
+                        tile.position.x + vector.x,
+                        tile.position.y + vector.y
+                    }
+                }
+                table.insert(double_hidden_tiles, double_hidden)
+            end
+        end
     end
     surface.set_tiles(transformed_tiles, true, false)
+    for _,hidden in pairs(hidden_tiles) do
+        surface.set_hidden_tile(hidden.position, hidden.name)
+    end
+    for _,double_hidden in pairs(double_hidden_tiles) do
+        surface.set_double_hidden_tile(double_hidden.position, double_hidden.name)
+    end
 end
 
 function copy_entity_pool(player, entity_pool, vector, surface, force)
