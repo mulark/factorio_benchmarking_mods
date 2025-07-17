@@ -87,32 +87,39 @@ function is_copper_cable_connectable(type)
     return false
 end
 
---{"decider-combinator", "arithmetic-combinator"}
-function is_nonconst_combinator(type)
-    if type == "decider-combinator" then return true end
-    if type == "arithmetic-combinator" then return true end
-    return false
-end
-
 function is_circuit_network_connectable(type)
+    if type == "artillery-turret" then return true end
     if type == "accumulator" then return true end
+    if type == "agricultural-tower" then return true end
     if type == "arithmetic-combinator" then return true end
+    if type == "assembling-machine" then return true end
+    if type == "asteroid-collector" then return true end
+    if type == "cargo-landing-pad" then return true end
     if type == "constant-combinator" then return true end
     if type == "container" then return true end
     if type == "decider-combinator" then return true end
+    if type == "display-panel" then return true end
     if type == "electric-pole" then return true end
+    if type == "fluid-turret" then return true end
+    if type == "furnace" then return true end
     if type == "infinity-container" then return true end
     if type == "inserter" then return true end
     if type == "lamp" then return true end
+    if type == "linked-container" then return true end
     if type == "logistic-container" then return true end
     if type == "mining-drill" then return true end
     if type == "offshore-pump" then return true end
     if type == "power-switch" then return true end
     if type == "programmable-speaker" then return true end
+    if type == "proxy-container" then return true end
     if type == "pump" then return true end
+    if type == "radar" then return true end
+    if type == "reactor" then return true end
     if type == "rail-chain-signal" then return true end
     if type == "rail-signal" then return true end
     if type == "roboport" then return true end
+    if type == "rocket-silo" then return true end
+    if type == "space-platform-hub" then return true end
     if type == "storage-tank" then return true end
     if type == "train-stop" then return true end
     if type == "transport-belt" then return true end
