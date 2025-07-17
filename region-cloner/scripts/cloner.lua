@@ -69,7 +69,7 @@ function convert_bounding_box_to_current_paste_region(tpx, tpy, current_paste, b
     return modified_box
 end
 
-function copy_tiles(player, tiles, vector, surface)
+function copy_tiles(tiles, vector, surface)
     local transformed_tiles = {}
     local hidden_tiles = {}
     local double_hidden_tiles = {}

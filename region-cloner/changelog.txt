@@ -1,158 +1,215 @@
-3.0.2:
+---------------------------------------------------------------------------------------------------
+Version: 3.1.0
+Fix cloning tiles into ungenerated chunks. I'd like to find a better solution than the one I came up with, as this way we just tell the chunk it's done generating, which leaves out of map tiles lingering
+
+---------------------------------------------------------------------------------------------------
+Version: 3.0.2
 Clone all tiles, not just ground tiles. Since offshore pumps cloned onto land stop functioning. Including hidden tiles
 
-3.0.1:
+---------------------------------------------------------------------------------------------------
+Version: 3.0.1
 Fix all known issues with Factorio 2.0 (may still have unknown issues)
 
-3.0.0: (never released to mod portal)
+---------------------------------------------------------------------------------------------------
+Version: 3.0.0 (never released to mod portal)
 Update for Factorio 2.0, WIP
 
-2.2.2:
+---------------------------------------------------------------------------------------------------
+Version: 2.2.2
 Fix collision box of walls when cloning into ungenerated chunks
 
-2.2.1:
+---------------------------------------------------------------------------------------------------
+Version: 2.2.1
 Bugfix if cursor is valid for read before trying to read it.
 
-2.2.0:
+---------------------------------------------------------------------------------------------------
+Version: 2.2.0
 Added charting of pasted area
 
-2.1.4:
+---------------------------------------------------------------------------------------------------
+Version: 2.1.4
 Improved logic for overlapping paste areas, fixes issues with beacons stacking on same tile despite clear paste area being set
 
-2.1.3:
+---------------------------------------------------------------------------------------------------
+Version: 2.1.3
 Optimized clearing paste area
 
-2.1.2:
+---------------------------------------------------------------------------------------------------
+Version: 2.1.2
 Make it possible to clone across multiple ticks by printing progress. Increases odds of any pastes breaking but lets you see if your clone will complete within a reasonable amount of time. Thanks to @flameSla for this contribution.
 
-2.1.1:
+---------------------------------------------------------------------------------------------------
+Version: 2.1.1
 Handle case where clone would exceed the end of the map.
 
-2.1.0:
+---------------------------------------------------------------------------------------------------
+Version: 2.1.0
 Revert back to cloning rolling stock manually due to buggy vanilla implementation
 
-2.0.2:
+---------------------------------------------------------------------------------------------------
+Version: 2.0.2
 Fix edge case when power switch is connected to one copper wire and source_wire_id is 1
 
-2.0.1:
+---------------------------------------------------------------------------------------------------
+Version: 2.0.1
 Fix bug with cloning power switches
 
-2.0.0:
+---------------------------------------------------------------------------------------------------
+Version: 2.0.0
 Update for 1.1
 
-1.2.8:
+---------------------------------------------------------------------------------------------------
+Version: 1.2.8
 Update for 0.18.27
 
-1.2.6:
+---------------------------------------------------------------------------------------------------
+Version: 1.2.6
 Fix handling of copper cable connections
 
-1.2.5:
+---------------------------------------------------------------------------------------------------
+Version: 1.2.5
 Fake clone power poles (optimization)
 
-1.2.4:
+---------------------------------------------------------------------------------------------------
+Version: 1.2.4
 Make the flags r and c compatible
 
-1.2.3:
+---------------------------------------------------------------------------------------------------
+Version: 1.2.3
 Hotfix debug print removal
 
-1.2.2:
+---------------------------------------------------------------------------------------------------
+Version: 1.2.2
 Add r flag to autoclone, allows autoclone to respect logistic networks and space them out suffciently
 
-1.2.1:
+---------------------------------------------------------------------------------------------------
+Version: 1.2.1
 Copy circuit network signals for all entites, not just combinators.
 
-1.2.0:
+---------------------------------------------------------------------------------------------------
+Version: 1.2.0
 Numerous changes, drastically better circuit network signals copy. autoclone command. Restrict selection area now will populate with all entity span if clicked when all 0's in coord box. Removed dependance of on_tick completely (before it was executed for 1 single tick). Removed cloned rolling stock flip check since it seems to be fixed?
 
-1.1.11:
+---------------------------------------------------------------------------------------------------
+Version: 1.1.11
 Further optimizations resulting in 60% reduction to cloning time. A couple bugfixes: removing incorrect warning print cases and better destroying of rails.
 
-1.1.10:
+---------------------------------------------------------------------------------------------------
+Version: 1.1.10
 80% reduction in cloning time when cloning over existing an existing paste.
 
-1.1.9:
+---------------------------------------------------------------------------------------------------
+Version: 1.1.9
 Several cleanups/bugfixes
 
-1.1.8:
+---------------------------------------------------------------------------------------------------
+Version: 1.1.8
 Hotfix to remove debug printing
 
-1.1.7:
+---------------------------------------------------------------------------------------------------
+Version: 1.1.7
 Fixed copying combinators, fixed copying wire references in an edge case.
 
-1.1.6:
+---------------------------------------------------------------------------------------------------
+Version: 1.1.6
 Rework train cloning to fix them in on_entity_cloned. This fixes the vanilla clone as well. As well as fixing teleported power poles since they're handled a little bit differently.
 
-1.1.5:
+---------------------------------------------------------------------------------------------------
+Version: 1.1.5
 Connect cloned circuit connections even if the source entities have been teleported outside the normal connection range
 
-1.1.4:
+---------------------------------------------------------------------------------------------------
+Version: 1.1.4
 Copy reference of circuit connections
 
-1.1.3:
+---------------------------------------------------------------------------------------------------
+Version: 1.1.3
 Check that clones are still valid since they could get overwritten due to tick_paused. --still TODO rewrite this
 
-1.1.2:
+---------------------------------------------------------------------------------------------------
+Version: 1.1.2
 Check that job_queue exists before iterating through it. --Probably not needed anymore
 
-1.1.1:
+---------------------------------------------------------------------------------------------------
+Version: 1.1.1
 Don't copy character cause it got renamed.
 
-1.1.0:
+---------------------------------------------------------------------------------------------------
+Version: 1.1.0
 Copy circuit network signals and use clone_entities() for most entities.
 
-1.0.1:
+---------------------------------------------------------------------------------------------------
+Version: 1.0.1
 Don't set beacons inactive (breaks shingled pastes in very specific edge case).
 
-1.0.0:
+---------------------------------------------------------------------------------------------------
+Version: 1.0.0
 0.17 Support
 
-0.3.2:
+---------------------------------------------------------------------------------------------------
+Version: 0.3.2
 Backport beacon keep active state from 1.0.1. The 0.X.X tree will be maintained at least until 0.17 is stable.
 
-0.3.1:
+---------------------------------------------------------------------------------------------------
+Version: 0.3.1
 Advanced copy paste settings
 
-0.3.0:
+---------------------------------------------------------------------------------------------------
+Version: 0.3.0
 Insanely better method to copy trains, will work in every case except for trains hitting each other
 
-0.2.0:
+---------------------------------------------------------------------------------------------------
+Version: 0.2.0
 Multiplayer safe.. hopefully; Don't delete the player's character if they're standing in the paste area; Fix for infinite loop copying trains
 
-0.1.7:
+---------------------------------------------------------------------------------------------------
+Version: 0.1.7
 Slightly less optimization but slightly more working
 
-0.1.6:
+---------------------------------------------------------------------------------------------------
+Version: 0.1.6
 Bugfix and optimizations
 
-0.1.5:
+---------------------------------------------------------------------------------------------------
+Version: 0.1.5
 Greatly improve the cloning behavior of trains. Going from a straight rail to a curved should work 100% of the time. Diagonal rails will still break in some scenarios.
 
-0.1.4:
+---------------------------------------------------------------------------------------------------
+Version: 0.1.4
 Add job progress bar and cancelling
 
-0.1.3:
+---------------------------------------------------------------------------------------------------
+Version: 0.1.3
 A few minor optimizations and bug fixes
 
-0.1.2:
+---------------------------------------------------------------------------------------------------
+Version: 0.1.2
 virtual job creation for debugging, jobs actually process now, instead of just the most recent job
 
-0.1.1:
+---------------------------------------------------------------------------------------------------
+Version: 0.1.1
 Hotfix to make the job queue a global variable so multiplayer works
 
-0.1.0:
+---------------------------------------------------------------------------------------------------
+Version: 0.1.0
 Rework cloning system to use jobs. This should allow multiplayer simultaneous cloning.
 
-0.0.5:
+---------------------------------------------------------------------------------------------------
+Version: 0.0.5
 Copy the temperature of entities with heat, gui tweak
 
-0.0.4:
+---------------------------------------------------------------------------------------------------
+Version: 0.0.4
 Make collision boxes consider rotation/orientation of entity
 
-0.0.3:
+---------------------------------------------------------------------------------------------------
+Version: 0.0.3
 Fix a couple bugs, gui tweak, add a catch for 1 case we can't copy
 
-0.0.2:
+---------------------------------------------------------------------------------------------------
+Version: 0.0.2
 Make cloning the rail grid based on if any rail is detected, not forced at all times; fix bug for copying to the north and west.
 
-0.0.1:
+---------------------------------------------------------------------------------------------------
+Version: 0.0.1
 Initial release

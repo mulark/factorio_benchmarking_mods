@@ -366,7 +366,6 @@ function region_cloner_main_for(step)
 		validate_entity_pool(region_cloner_job.moving_rolling_stock_pool)
 		validate_entity_pool(region_cloner_job.entity_pool)
 		validate_entity_pool(region_cloner_job.lite_entity_pool)
-        copy_tiles(region_cloner_job.player, region_cloner_job.tiles, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.surface)
 	end
 	if hasbit(step, region_cloner_high_prio) then
 		-- High prio
@@ -470,9 +469,17 @@ function run_job(job)
 			end
 		end
 
-        local x
-        for x=1, job.times_to_paste do
-            smart_chart(job.player, job.tiles_to_paste_x, job.tiles_to_paste_y, x, job.bounding_box)
+        local paste_num
+        for paste_num=1, job.times_to_paste do
+            smart_chart(job.player, job.tiles_to_paste_x, job.tiles_to_paste_y, paste_num, job.bounding_box)
+        end
+        -- TODO: come up with a better way to do this...
+        for chunk in job.surface.get_chunks() do
+            job.surface.set_chunk_generated_status({x=chunk.x, y=chunk.y}, defines.chunk_generated_status.entities)
+        end
+        local paste_num
+        for paste_num=1, job.times_to_paste do
+            copy_tiles(job.tiles, {x = job.tiles_to_paste_x * paste_num, y = job.tiles_to_paste_y * paste_num}, job.surface)
         end
 
         -- After cloning all things, then destroy any source entities that were in the way of a paste
