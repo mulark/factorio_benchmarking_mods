@@ -1,13 +1,49 @@
 GUI_ELEMENT_PREFIX = "region-cloner_"
 
-storage.combinators_to_destroy_in_next_tick = {}
-
 debug_logging = false
 
 -- Electric poles need nothing from clone_entities and
 -- it ends up being significantly faster to just create_entity instead.
 -- NOTE: Moving rolling stock also end up as something lite cloned - not since region cloner 3.0.0
 LITE_CLONING_TYPES = {"electric-pole"}
+
+
+function orientation_to_radians_in_factorio_coordinate_system(orientation)
+    return ((orientation*math.pi*2) % (math.pi * 2))
+end
+
+function rotate_about_pivot(x, y, pivotx, pivoty, radians)
+    return {x = ((x-pivotx) * math.cos(radians) - (y-pivoty) * math.sin(radians)) + pivotx,
+            y = ((x-pivotx) * math.sin(radians) + (y-pivoty) * math.cos(radians)) + pivoty}
+end
+
+function entity_bounding_box_orientation_aware(entity)
+    local bb =entity.selection_box
+
+    --[[rendering.draw_rectangle{color={g=128, b=128}, left_top=bb.left_top, right_bottom=bb.right_bottom, surface=entity.surface}]]
+    --[[
+    Curved rails don't use position for the midpoint of the selection box? Why?
+    local position = entity.position
+    ]]
+    local position = {x=(bb.left_top.x + bb.right_bottom.x) / 2, y=(bb.left_top.y + bb.right_bottom.y) / 2}
+    local factorio_radians = orientation_to_radians_in_factorio_coordinate_system(bb.orientation or 0)
+
+    local left_top = rotate_about_pivot(bb.left_top.x, bb.left_top.y, position.x, position.y, factorio_radians)
+    local right_top = rotate_about_pivot(bb.right_bottom.x, bb.left_top.y, position.x, position.y, factorio_radians)
+    local left_bottom = rotate_about_pivot(bb.left_top.x, bb.right_bottom.y, position.x, position.y, factorio_radians)
+    local right_bottom = rotate_about_pivot(bb.right_bottom.x, bb.right_bottom.y, position.x, position.y, factorio_radians)
+
+    local extent = {left_top={x=math.min(left_top.x,right_top.x,left_bottom.x,right_bottom.x), y=math.min(left_top.y,right_top.y,left_bottom.y,right_bottom.y)},
+                    right_bottom={x=math.max(left_top.x,right_top.x,left_bottom.x,right_bottom.x),y=math.max(left_top.y,right_top.y,left_bottom.y,right_bottom.y)}}
+
+    --[[rendering.draw_rectangle{color={g=128}, left_top=extent.left_top, right_bottom=extent.right_bottom, surface=entity.surface}]]
+    return extent
+end
+
+function unpack_bounding_box(bb)
+   return bb.left_top.x, bb.left_top.y, bb.right_bottom.x, bb.right_bottom.y
+end
+
 
 function has_value(val, tab)
     --Slow path for non-critical comparisons.
