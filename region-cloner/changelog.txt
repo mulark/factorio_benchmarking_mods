@@ -1,4 +1,8 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.1.2
+  Bugfixes:
+    - Fix offshore pumps to always include tiles that they can suck from when using /autoclone
+---------------------------------------------------------------------------------------------------
 Version: 3.1.1
   Bugfixes:
     - Support agricultural towers to properly encompass plantable area

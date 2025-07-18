@@ -40,6 +40,11 @@ function entity_bounding_box_orientation_aware(entity)
     return extent
 end
 
+function orientation_aware_vector(vector, orientation)
+    local factorio_radians = orientation_to_radians_in_factorio_coordinate_system(orientation or 0)
+    return rotate_about_pivot(vector.x, vector.y, 0, 0, factorio_radians)
+end
+
 function unpack_bounding_box(bb)
    return bb.left_top.x, bb.left_top.y, bb.right_bottom.x, bb.right_bottom.y
 end

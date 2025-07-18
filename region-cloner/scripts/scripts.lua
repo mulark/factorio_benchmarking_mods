@@ -50,6 +50,19 @@ function restrict_selection_area_to_entities(box, chunk_align, player, respect_l
                 unusual_collision_box_factor_left, unusual_collision_box_factor_top, unusual_collision_box_factor_right, unusual_collision_box_factor_bottom = decode_direction_for_unusual_collision_box(ent.direction, ent.type)
                 ltx, lty, rbx, rby = 0, 0, 0, 0
             end
+            if ent.type == "offshore-pump" then
+                local vec = orientation_aware_vector({x=0, y=-1}, ent.orientation)
+                if vec.x < 0 then
+                    ltx = ltx + vec.x
+                else
+                    rbx = rbx + vec.x
+                end
+                if vec.y < 0 then
+                    lty = lty + vec.y
+                else
+                    rby = rby + vec.y
+                end
+            end
             local radius = 0
             if ent.type == "agricultural-tower" then
                 radius = ent.prototype.agricultural_tower_radius * ent.prototype.growth_grid_tile_size + (rbx - ent.position.x)
