@@ -50,6 +50,25 @@ function restrict_selection_area_to_entities(box, chunk_align, player, respect_l
                 unusual_collision_box_factor_left, unusual_collision_box_factor_top, unusual_collision_box_factor_right, unusual_collision_box_factor_bottom = decode_direction_for_unusual_collision_box(ent.direction, ent.type)
                 ltx, lty, rbx, rby = 0, 0, 0, 0
             end
+            if ent.type == "mining-drill" then
+                local radius = ent.prototype.get_mining_drill_radius(ent.quality)
+                local left = ent.position.x - radius
+                local top = ent.position.y - radius
+                local right = ent.position.x + radius
+                local bottom = ent.position.y + radius
+                if left < ltx then
+                    ltx = left
+                end
+                if top < lty then
+                    lty = top
+                end
+                if right > rbx then
+                    rbx = right
+                end
+                if bottom > rby then
+                    rby = bottom
+                end
+            end
             if respect_logistics then
                 if ent.logistic_cell then
                     local distance = ent.logistic_cell.logistic_radius
