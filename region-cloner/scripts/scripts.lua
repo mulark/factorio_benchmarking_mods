@@ -28,31 +28,6 @@ local function swap_values(first, second)
     return second, first
 end
 
-function convert_entity_collision_box_to_rotated_aware(ent)
-    local box = ent.prototype.collision_box
-    local ltx, lty, rbx, rby = box.left_top.x, box.left_top.y, box.right_bottom.x, box.right_bottom.y
-    if (ent.supports_direction) then
-        if (box.left_top.x ~= box.left_top.y) then
-            if (box.right_bottom.x ~= box.right_bottom.y) then
-                --[[Entity is not a square collision box]]
-                if has_value(ent.direction, {2, 6}) then
-                    --[[Rotate by swapping x and y coordinates]]
-                    ltx, lty = swap_values(ltx, lty)
-                    rbx, rby = swap_values(rbx, rby)
-                end
-            end
-        end
-    else
-        if (ent.orientation) then
-            if has_value(ent.orientation, {0.25, 0.75}) then
-                ltx, lty = swap_values(ltx, lty)
-                rbx, rby = swap_values(rbx, rby)
-            end
-        end
-    end
-    return ltx, lty, rbx, rby
-end
-
 function restrict_selection_area_to_entities(box, chunk_align, player, respect_logistics)
     local first_ent = true
     --secondary_collision_box now exists, this can be done better.
@@ -70,7 +45,7 @@ function restrict_selection_area_to_entities(box, chunk_align, player, respect_l
         if not is_ignored_entity_type(ent.type) then
             local unusual_collision_box_factor_left, unusual_collision_box_factor_top, unusual_collision_box_factor_right, unusual_collision_box_factor_bottom = 0, 0, 0, 0
             --ltx = left top x relative collision box coords
-            local ltx, lty, rbx, rby = convert_entity_collision_box_to_rotated_aware(ent)
+            local ltx, lty, rbx, rby = unpack_bounding_box(entity_bounding_box_orientation_aware(ent))
             if ent.type == "curved-rail" then
                 unusual_collision_box_factor_left, unusual_collision_box_factor_top, unusual_collision_box_factor_right, unusual_collision_box_factor_bottom = decode_direction_for_unusual_collision_box(ent.direction, ent.type)
                 ltx, lty, rbx, rby = 0, 0, 0, 0
@@ -92,10 +67,10 @@ function restrict_selection_area_to_entities(box, chunk_align, player, respect_l
                     end
                 end
             end
-            local l = ent.position.x + ltx - unusual_collision_box_factor_left
-            local t = ent.position.y + lty - unusual_collision_box_factor_top
-            local r = ent.position.x + rbx + unusual_collision_box_factor_right
-            local b = ent.position.y + rby + unusual_collision_box_factor_bottom
+            local l = ltx - unusual_collision_box_factor_left
+            local t = lty - unusual_collision_box_factor_top
+            local r = rbx + unusual_collision_box_factor_right
+            local b = rby + unusual_collision_box_factor_bottom
             local compare_left = math.floor(l)
             local compare_top = math.floor(t)
             local compare_right = math.ceil(r)
