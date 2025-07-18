@@ -1,4 +1,8 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.1.1
+  Bugfixes:
+    - Support agricultural towers to properly encompass plantable area
+---------------------------------------------------------------------------------------------------
 Version: 3.1.0
   Bugfixes:
     - Fix cloning tiles into ungenerated chunks.
