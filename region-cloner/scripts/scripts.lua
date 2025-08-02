@@ -71,6 +71,12 @@ function restrict_selection_area_to_entities(box, chunk_align, player, respect_l
                 radius = ent.prototype.get_mining_drill_radius(ent.quality)
             end
 
+            if respect_logistics then
+                if ent.logistic_cell then
+                    radius = ent.logistic_cell.logistic_radius + 0.5
+                end
+            end
+
             local left = ent.position.x - radius
             local top = ent.position.y - radius
             local right = ent.position.x + radius
@@ -88,23 +94,6 @@ function restrict_selection_area_to_entities(box, chunk_align, player, respect_l
                 rby = bottom
             end
 
-            if respect_logistics then
-                if ent.logistic_cell then
-                    local distance = ent.logistic_cell.logistic_radius
-                    if distance > ltx then
-                        ltx = -(distance)
-                    end
-                    if distance > lty then
-                        lty = -(distance)
-                    end
-                    if distance > rbx then
-                        rbx = distance + 1
-                    end
-                    if distance > rby then
-                        rby = distance + 1
-                    end
-                end
-            end
             local l = ltx - unusual_collision_box_factor_left
             local t = lty - unusual_collision_box_factor_top
             local r = rbx + unusual_collision_box_factor_right

@@ -145,6 +145,7 @@ function job_create_lite(times_to_paste, dir_to_copy_index, chunk_align, player,
     if (debug_logging) then
         log("finished lite job creation")
     end
+--     rendering.draw_rectangle{width=8, color={g=128, b=128}, left_top=job.bounding_box.left_top, right_bottom=job.bounding_box.right_bottom, surface=job.surface}
     return job
 end
 
