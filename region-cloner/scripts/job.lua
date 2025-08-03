@@ -159,9 +159,9 @@ function job_create(player)
     job.surface = player.surface
     job.force = player.force
     job.bounding_box = get_region_bounding_box(player)
-    local advanced_settings_gui = frame_flow[GUI_ELEMENT_PREFIX .. "advanced_view_pane"]
-    local tile_paste_override_table = advanced_settings_gui[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_override_table"]
-    local custom_tile_paste_length_flag = tile_paste_override_table[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_override_checkbox"].state
+    local advanced_settings_gui = frame_flow[GUI_PFX .. "advanced_view_pane"]
+    local tile_paste_override_table = advanced_settings_gui[GUI_PFX .. "advanced_tile_paste_override_table"]
+    local custom_tile_paste_length_flag = tile_paste_override_table[GUI_PFX .. "advanced_tile_paste_override_checkbox"].state
     job.custom_tile_paste_length_flag = custom_tile_paste_length_flag
     local temp_ent_pool = player.surface.find_entities_filtered{area=job.bounding_box, type = LITE_CLONING_TYPES, invert = true}
     local gui_dropdown_index = frame_flow["region-cloner_control-window"]["region-cloner_drop_down_table"]["region-cloner_direction-to-copy"].selected_index
@@ -171,16 +171,16 @@ function job_create(player)
     job.times_to_paste = tonumber(mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_drop_down_table"]["number_of_copies"].text)
 
     if (job.custom_tile_paste_length_flag) then
-        job.tiles_to_paste_x = tonumber(tile_paste_override_table[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_x"].text)
-        job.tiles_to_paste_y = tonumber(tile_paste_override_table[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_y"].text)
+        job.tiles_to_paste_x = tonumber(tile_paste_override_table[GUI_PFX .. "advanced_tile_paste_x"].text)
+        job.tiles_to_paste_y = tonumber(tile_paste_override_table[GUI_PFX .. "advanced_tile_paste_y"].text)
         job.tiles_to_paste_x, job.tiles_to_paste_y = clean_entity_pool_and_selectively_correct_tile_paste_length_for_rail_grid(temp_ent_pool, job.tiles_to_paste_x, job.tiles_to_paste_y, job.custom_tile_paste_length_flag, job.player)
     else
         job.tiles_to_paste_x, job.tiles_to_paste_y = convert_box_to_offsets(gui_dropdown_index, job.bounding_box)
         job.tiles_to_paste_x, job.tiles_to_paste_y = clean_entity_pool_and_selectively_correct_tile_paste_length_for_rail_grid(temp_ent_pool, job.tiles_to_paste_x, job.tiles_to_paste_y, job.custom_tile_paste_length_flag, job.player)
     end
-    local advanced_clear_paste_area_table = advanced_settings_gui[GUI_ELEMENT_PREFIX .. "advanced_clear_paste_area_table"]
-    job.clear_normal_entities = advanced_clear_paste_area_table[GUI_ELEMENT_PREFIX .. "clear_normal_entities"].state
-    job.clear_resource_entities = advanced_clear_paste_area_table[GUI_ELEMENT_PREFIX .. "clear_resource_entities"].state
+    local advanced_clear_paste_area_table = advanced_settings_gui[GUI_PFX .. "advanced_clear_paste_area_table"]
+    job.clear_normal_entities = advanced_clear_paste_area_table[GUI_PFX .. "clear_normal_entities"].state
+    job.clear_resource_entities = advanced_clear_paste_area_table[GUI_PFX .. "clear_resource_entities"].state
     local srctilex
     local srctiley
     if job.tiles_to_paste_x > 0 then

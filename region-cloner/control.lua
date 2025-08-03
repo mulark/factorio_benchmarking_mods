@@ -35,37 +35,37 @@ script.on_event({defines.events.on_gui_click}, function(event)
     local player = game.players[event.player_index]
     local frame_flow = mod_gui.get_frame_flow(player)
     local clicked_on = event.element.name
-    if (clicked_on == GUI_ELEMENT_PREFIX .. "reset_gui_button") then
+    if (clicked_on == GUI_PFX .. "reset_gui_button") then
         --[[Probably will be removed in the next version as it's pointless]]
         gui.create_gui(player)
     end
-    if (clicked_on == GUI_ELEMENT_PREFIX .. "main-button") then
-        frame_flow[GUI_ELEMENT_PREFIX .. "control-window"].visible = not frame_flow[GUI_ELEMENT_PREFIX .. "control-window"].visible
-        if (frame_flow[GUI_ELEMENT_PREFIX .. "advanced_view_pane"].visible) then
-            frame_flow[GUI_ELEMENT_PREFIX .. "advanced_view_pane"].visible = false
+    if (clicked_on == GUI_PFX .. "main-button") then
+        frame_flow[GUI_PFX .. "control-window"].visible = not frame_flow[GUI_PFX .. "control-window"].visible
+        if (frame_flow[GUI_PFX .. "advanced_view_pane"].visible) then
+            frame_flow[GUI_PFX .. "advanced_view_pane"].visible = false
         end
     end
-    if (clicked_on == GUI_ELEMENT_PREFIX .. "advanced_view_button") then
-        frame_flow[GUI_ELEMENT_PREFIX .. "advanced_view_pane"].visible = not frame_flow[GUI_ELEMENT_PREFIX .. "advanced_view_pane"].visible
+    if (clicked_on == GUI_PFX .. "advanced_view_button") then
+        frame_flow[GUI_PFX .. "advanced_view_pane"].visible = not frame_flow[GUI_PFX .. "advanced_view_pane"].visible
     end
-    if (clicked_on == GUI_ELEMENT_PREFIX .. "get_selection_tool_button") then
+    if (clicked_on == GUI_PFX .. SELECTION_TOOL) then
         --[[Try to clean anything in the cursor]]
         player.clear_cursor()
         if (player.cursor_stack.valid_for_read) then
             player.print("Your inventory is too full to use this tool")
             return
         end
-        --[[Don't use GUI_ELEMENT_PREFIX since this item is not a GUI ya dingus!]]
+        --[[Don't use GUI_PFX since this item is not a GUI ya dingus!]]
         inv = player.get_main_inventory()
         if inv ~= nil then
-            inv.remove("region-cloner_selection-tool")
+            inv.remove(SELECTION_TOOL)
         end
-        player.cursor_stack.set_stack("region-cloner_selection-tool")
+        player.cursor_stack.set_stack(SELECTION_TOOL)
     end
-    if (clicked_on == GUI_ELEMENT_PREFIX .. "restrict_selection_area_to_entities") then
+    if (clicked_on == GUI_PFX .. "restrict_selection_area_to_entities") then
         validate_coordinates_and_update_view(player, true)
     end
-    if (clicked_on == GUI_ELEMENT_PREFIX .. "issue_copy_pastes_button") then
+    if (clicked_on == GUI_PFX .. "issue_copy_pastes_button") then
         if (validate_player_copy_paste_settings(player)) then
             issue_copy_paste(player)
         end
@@ -75,8 +75,8 @@ end)
 script.on_event({defines.events.on_player_selected_area}, function(event)
     local player = game.players[event.player_index]
     local stack = player.cursor_stack
-    if (stack.valid_for_read and stack.name == "region-cloner_selection-tool") then
-        local coord_table = mod_gui.get_frame_flow(player)[GUI_ELEMENT_PREFIX .. "control-window"][GUI_ELEMENT_PREFIX .. "coordinate-table"]
+    if (stack.valid_for_read and stack.name == SELECTION_TOOL) then
+        local coord_table = mod_gui.get_frame_flow(player)[GUI_PFX .. "control-window"][GUI_PFX .. "coordinate-table"]
         if coord_table["left_top_x"] then
             coord_table["left_top_x"].text = tostring(math.floor(event.area.left_top.x))
         end

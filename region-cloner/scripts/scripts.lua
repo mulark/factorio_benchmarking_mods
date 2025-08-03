@@ -189,14 +189,14 @@ function validate_player_copy_paste_settings(player)
     if not (direction_to_copy) then
         player.print("Somehow your direction to paste is not valid!")
     end
-    local advanced_settings_gui = frame_flow[GUI_ELEMENT_PREFIX .. "advanced_view_pane"]
-    local custom_tile_paste_length_table = advanced_settings_gui[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_override_table"]
-    if (custom_tile_paste_length_table[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_override_checkbox"].state == true) then
+    local advanced_settings_gui = frame_flow[GUI_PFX .. "advanced_view_pane"]
+    local custom_tile_paste_length_table = advanced_settings_gui[GUI_PFX .. "advanced_tile_paste_override_table"]
+    if (custom_tile_paste_length_table[GUI_PFX .. "advanced_tile_paste_override_checkbox"].state == true) then
         --[[
         We don't care what these are if the box is not checked
         ]]
-        local tiles_to_paste_x = tonumber(custom_tile_paste_length_table[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_x"].text)
-        local tiles_to_paste_y = tonumber(custom_tile_paste_length_table[GUI_ELEMENT_PREFIX .. "advanced_tile_paste_y"].text)
+        local tiles_to_paste_x = tonumber(custom_tile_paste_length_table[GUI_PFX .. "advanced_tile_paste_x"].text)
+        local tiles_to_paste_y = tonumber(custom_tile_paste_length_table[GUI_PFX .. "advanced_tile_paste_y"].text)
         if (tiles_to_paste_x and tiles_to_paste_y) then
             if (tiles_to_paste_x == 0 and tiles_to_paste_y == 0) then
                 player.print("You selected custom tile paste lengths but they're both 0!")
@@ -450,8 +450,8 @@ function run_job(job)
 		region_cloner_xmax = job.times_to_paste
 		region_cloner_job = job
 		region_cloner_drum = 0
-		progress_bar = mod_gui.get_frame_flow(region_cloner_job.player)[GUI_ELEMENT_PREFIX .. "advanced_view_pane"][GUI_ELEMENT_PREFIX .. "progress_bar"].state
-		detailed_log = mod_gui.get_frame_flow(region_cloner_job.player)[GUI_ELEMENT_PREFIX .. "advanced_view_pane"][GUI_ELEMENT_PREFIX .. "detailed_log"].state
+		progress_bar = mod_gui.get_frame_flow(region_cloner_job.player)[GUI_PFX .. "advanced_view_pane"][GUI_PFX .. "progress_bar"].state
+		detailed_log = mod_gui.get_frame_flow(region_cloner_job.player)[GUI_PFX .. "advanced_view_pane"][GUI_PFX .. "detailed_log"].state
 		if progress_bar or detailed_log then
 			--[With a progress bar]
 			region_cloner_x = 0

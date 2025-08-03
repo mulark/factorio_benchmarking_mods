@@ -1,4 +1,5 @@
-GUI_ELEMENT_PREFIX = "region-cloner_"
+GUI_PFX = "region-cloner_"
+SELECTION_TOOL = "region-cloner_selection-tool"
 
 debug_logging = false
 
