@@ -53,6 +53,10 @@ gui.create_gui = function (player)
         coord_gui_table.add{type="textfield", name="right_bottom_x", text="0", numeric=true, allow_negative=true}
         coord_gui_table.add{type="textfield", name="right_bottom_y", text="0", numeric=true, allow_negative=true}
 
+    -- Add selection box rendering controls
+    local selection_box_table = mod_frame.add{type="table", column_count=2, name=GUI_PFX .. "selection_box_table"}
+        selection_box_table.add{type="checkbox", caption="Show Selection Box", state=true, name=GUI_PFX .. "show_selection_box", tooltip="Displays a visual box around your current selection area"}
+
     local drop_down_table = mod_frame.add{type="table", column_count=4, name=GUI_PFX .. "drop_down_table"}
         drop_down_table.add{type="label", caption="Direction to copy:", tooltop="The direction pastes will be executed in. Use a custom tile paste override if you need finer control."}
         drop_down_table.add{type="drop-down", items={"North","East","South","West"}, selected_index=1, name = GUI_PFX .. "direction-to-copy"}
@@ -81,6 +85,76 @@ gui.clear_gui = function (player)
     end
     if mod_frame[GUI_PFX .. "advanced_view_pane"] then
         mod_frame[GUI_PFX .. "advanced_view_pane"].destroy()
+    end
+    -- Clear any existing selection box rendering
+    gui.clear_selection_box(player)
+end
+
+-- Function to render the selection box
+gui.render_selection_box = function(player)
+    local coord_table = mod_gui.get_frame_flow(player)[GUI_PFX .. "control-window"][GUI_PFX .. "coordinate-table"]
+    if not coord_table then return end
+
+    local left_top_x = tonumber(coord_table["left_top_x"].text)
+    local left_top_y = tonumber(coord_table["left_top_y"].text)
+    local right_bottom_x = tonumber(coord_table["right_bottom_x"].text)
+    local right_bottom_y = tonumber(coord_table["right_bottom_y"].text)
+
+    -- Clear existing selection box first
+    gui.clear_selection_box(player)
+
+    -- Only render if all coordinates are valid numbers and form a valid rectangle
+    if left_top_x and left_top_y and right_bottom_x and right_bottom_y and
+       (left_top_x ~= right_bottom_x or left_top_y ~= right_bottom_y) and
+       left_top_x < right_bottom_x and left_top_y < right_bottom_y then
+
+        local surface = player.surface
+
+        -- Create rendering objects for the selection box (visual only, no entities)
+        local render_objects = {}
+
+        -- Use only the rendering API - no actual entities that could interfere with dragging
+        if rendering then
+            -- Draw rectangle outline only
+            table.insert(render_objects, rendering.draw_rectangle{
+                color = {r = 0, g = 1, b = 0, a = 0.8},
+                width = 8,
+                filled = false,
+                left_top = {left_top_x, left_top_y},
+                right_bottom = {right_bottom_x, right_bottom_y},
+                surface = surface,
+                players = {player},
+                draw_on_ground = true,
+                visible = true
+            })
+        end
+
+        -- Store render objects for cleanup
+        storage.selection_boxes = storage.selection_boxes or {}
+        storage.selection_boxes[player.index] = render_objects
+    end
+end
+
+-- Function to clear the selection box
+gui.clear_selection_box = function(player)
+    if storage.selection_boxes and storage.selection_boxes[player.index] then
+        for _, render_object in pairs(storage.selection_boxes[player.index]) do
+            if render_object.valid then
+                render_object.destroy()
+            end
+        end
+        storage.selection_boxes[player.index] = nil
+    end
+end
+
+
+
+-- Function to toggle selection box visibility
+gui.toggle_selection_box = function(player, show)
+    if show then
+        gui.render_selection_box(player)
+    else
+        gui.clear_selection_box(player)
     end
 end
 
