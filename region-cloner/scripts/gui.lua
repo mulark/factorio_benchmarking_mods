@@ -56,6 +56,7 @@ gui.create_gui = function (player)
     -- Add selection box rendering controls
     local selection_box_table = mod_frame.add{type="table", column_count=2, name=GUI_PFX .. "selection_box_table"}
         selection_box_table.add{type="checkbox", caption="Show Selection Box", state=true, name=GUI_PFX .. "show_selection_box", tooltip="Displays a visual box around your current selection area"}
+        selection_box_table.add{type="button", caption="Refresh", name=GUI_PFX .. "refresh_circuit_networks", tooltip="Refresh the circuit network visualization"}
 
     local drop_down_table = mod_frame.add{type="table", column_count=4, name=GUI_PFX .. "drop_down_table"}
         drop_down_table.add{type="label", caption="Direction to copy:", tooltop="The direction pastes will be executed in. Use a custom tile paste override if you need finer control."}
@@ -88,10 +89,19 @@ gui.clear_gui = function (player)
     end
     -- Clear any existing selection box rendering
     gui.clear_selection_box(player)
+    gui.clear_circuit_connections(player)
 end
 
 -- Function to render the selection box
 gui.render_selection_box = function(player)
+    local selection_box_table = mod_gui.get_frame_flow(player)[GUI_PFX .. "control-window"][GUI_PFX .. "selection_box_table"]
+    show =  selection_box_table and selection_box_table[GUI_PFX .. "show_selection_box"].state
+    if not show then
+       gui.clear_selection_box(player)
+       gui.clear_circuit_connections(player)
+       return
+    end
+
     local coord_table = mod_gui.get_frame_flow(player)[GUI_PFX .. "control-window"][GUI_PFX .. "coordinate-table"]
     if not coord_table then return end
 
@@ -117,7 +127,7 @@ gui.render_selection_box = function(player)
         if rendering then
             -- Draw rectangle outline only
             table.insert(render_objects, rendering.draw_rectangle{
-                color = {r = 0, g = 1, b = 0, a = 0.8},
+                color = {r = 0, g = .4, b = .8, a = 0.8},
                 width = 8,
                 filled = false,
                 left_top = {left_top_x, left_top_y},
@@ -133,6 +143,7 @@ gui.render_selection_box = function(player)
         storage.selection_boxes = storage.selection_boxes or {}
         storage.selection_boxes[player.index] = render_objects
     end
+    gui.render_circuit_connections(player)
 end
 
 -- Function to clear the selection box
@@ -148,14 +159,199 @@ gui.clear_selection_box = function(player)
 end
 
 
+-- Function to render circuit network connections
+gui.render_circuit_connections = function(player)
+    local coord_table = mod_gui.get_frame_flow(player)[GUI_PFX .. "control-window"][GUI_PFX .. "coordinate-table"]
+    if not coord_table then return end
 
--- Function to toggle selection box visibility
-gui.toggle_selection_box = function(player, show)
-    if show then
-        gui.render_selection_box(player)
-    else
-        gui.clear_selection_box(player)
+    -- Parse coordinates
+    local coords = {}
+    for _, key in ipairs({"left_top_x", "left_top_y", "right_bottom_x", "right_bottom_y"}) do
+        coords[key] = tonumber(coord_table[key].text)
+        if not coords[key] then return end
+    end
+
+    -- Validate rectangle
+    if coords.left_top_x >= coords.right_bottom_x or coords.left_top_y >= coords.right_bottom_y then
+        return
+    end
+
+    gui.clear_circuit_connections(player)
+
+    local surface = player.surface
+    local area = {{coords.left_top_x, coords.left_top_y}, {coords.right_bottom_x, coords.right_bottom_y}}
+    local area_width = coords.right_bottom_x - coords.left_top_x
+    local area_height = coords.right_bottom_y - coords.left_top_y
+
+    -- Get copy settings
+    local drop_down_table = mod_gui.get_frame_flow(player)[GUI_PFX .. "control-window"][GUI_PFX .. "drop_down_table"]
+    if not drop_down_table then return end
+
+    local copy_direction = drop_down_table[GUI_PFX .. "direction-to-copy"].selected_index
+    local number_of_copies = 1
+
+    -- Get tile paste override settings
+    local tile_paste_x, tile_paste_y = area_width, area_height
+    local use_tile_paste_override = false
+
+    local advanced_view_pane = mod_gui.get_frame_flow(player)[GUI_PFX .. "advanced_view_pane"]
+    if advanced_view_pane then
+        local override_table = advanced_view_pane[GUI_PFX .. "advanced_tile_paste_override_table"]
+        if override_table and override_table[GUI_PFX .. "advanced_tile_paste_override_checkbox"].state then
+            use_tile_paste_override = true
+            tile_paste_x = tonumber(override_table[GUI_PFX .. "advanced_tile_paste_x"].text) or area_width
+            tile_paste_y = tonumber(override_table[GUI_PFX .. "advanced_tile_paste_y"].text) or area_height
+        end
+    end
+
+    -- Helper function to calculate clone offset
+    local function get_clone_offset(copy_num)
+        if use_tile_paste_override then
+            return tile_paste_x * copy_num, tile_paste_y * copy_num
+        end
+
+        local offsets = {
+            [1] = {0, -area_height * copy_num}, -- North
+            [2] = {area_width * copy_num, 0},   -- East
+            [3] = {0, area_height * copy_num},   -- South
+            [4] = {-area_width * copy_num, 0}   -- West
+        }
+        return table.unpack(offsets[copy_direction] or {0, 0})
+    end
+
+    -- Helper function to check if connection would work in clones
+    local function would_clone_successfully(entity, target_entity)
+        local offset_x = entity.position.x - target_entity.position.x
+        local offset_y = entity.position.y - target_entity.position.y
+
+        for copy_num = 1, number_of_copies do
+            local clone_offset_x, clone_offset_y = get_clone_offset(copy_num)
+            if clone_offset_x == 0 and clone_offset_y == 0 then
+                return false
+            end
+            local target_clone_pos = {
+                x = entity.position.x + clone_offset_x - offset_x,
+                y = entity.position.y + clone_offset_y - offset_y
+            }
+
+            if surface.find_entity({name=target_entity.name, quality=target_entity.quality}, target_clone_pos) then
+                return true
+            end
+        end
+        return false
+    end
+
+    -- Find and process circuit connections
+    local entity_pair_connections = {}
+    local wire_types = {
+        [defines.wire_connector_id.circuit_red] = "has_red",
+        [defines.wire_connector_id.circuit_green] = "has_green"
+    }
+
+    for _, entity in pairs(surface.find_entities(area)) do
+        if entity.valid then
+            for wire_id, wire_key in pairs(wire_types) do
+                local connector = entity.get_wire_connector(wire_id)
+                if connector then
+                    for _, connection in pairs(connector.connections) do
+                        local target = connection.target.owner
+                        if target and target.valid and
+                           not (target.position.x >= coords.left_top_x and target.position.x <= coords.right_bottom_x and
+                                target.position.y >= coords.left_top_y and target.position.y <= coords.right_bottom_y) and
+                           would_clone_successfully(entity, target) then
+
+                            -- Create unique pair key
+                            local id1, id2 = entity.unit_number or 0, target.unit_number or 0
+                            local pair_key = string.format("%d_%d", math.min(id1, id2), math.max(id1, id2))
+
+                            if not entity_pair_connections[pair_key] then
+                                entity_pair_connections[pair_key] = {
+                                    entity1 = entity,
+                                    entity2 = target,
+                                    has_red = false,
+                                    has_green = false
+                                }
+                            end
+                            entity_pair_connections[pair_key][wire_key] = true
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    -- Render connections
+    local render_objects = {}
+    local wire_configs = {
+        red = {color = {r=1, g=0, b=0, a=0.8}, offset_mult = 1},
+        green = {color = {r=0, g=1, b=0, a=0.8}, offset_mult = -1}
+    }
+
+    for _, conn in pairs(entity_pair_connections) do
+        local pos1, pos2 = conn.entity1.position, conn.entity2.position
+        local dx, dy = pos2.x - pos1.x, pos2.y - pos1.y
+        local length = math.sqrt(dx * dx + dy * dy)
+
+        if length > 0 then
+            local perp_x, perp_y = -dy / length * 0.15, dx / length * 0.15
+            local has_both = conn.has_red and conn.has_green
+
+            -- Draw wires
+            for wire_type, config in pairs(wire_configs) do
+                if conn["has_" .. wire_type] then
+                    local offset = has_both and config.offset_mult or 0
+                    local from = {x = pos1.x + perp_x * offset, y = pos1.y + perp_y * offset}
+                    local to = {x = pos2.x + perp_x * offset, y = pos2.y + perp_y * offset}
+
+                    table.insert(render_objects, rendering.draw_line{
+                        color = config.color,
+                        width = 3,
+                        from = from,
+                        to = to,
+                        surface = surface,
+                        players = {player},
+                        draw_on_ground = false,
+                        visible = true
+                    })
+                end
+            end
+
+            -- Draw connection points
+            local point_color = has_both and {r=1, g=0.5, b=0, a=0.8} or
+                               (conn.has_red and wire_configs.red.color or wire_configs.green.color)
+            local radius = has_both and 0.25 or 0.2
+
+            for _, pos in ipairs({pos1, pos2}) do
+                table.insert(render_objects, rendering.draw_circle{
+                    color = point_color,
+                    radius = radius,
+                    filled = true,
+                    target = pos,
+                    surface = surface,
+                    players = {player},
+                    draw_on_ground = false,
+                    visible = true
+                })
+            end
+        end
+    end
+
+    -- Store render objects
+    storage.circuit_connections = storage.circuit_connections or {}
+    storage.circuit_connections[player.index] = render_objects
+end
+
+-- Function to clear circuit network connections
+gui.clear_circuit_connections = function(player)
+    if storage.circuit_connections and storage.circuit_connections[player.index] then
+        for _, render_object in pairs(storage.circuit_connections[player.index]) do
+            if render_object.valid then
+                render_object.destroy()
+            end
+        end
+        storage.circuit_connections[player.index] = nil
     end
 end
+
 
 return gui

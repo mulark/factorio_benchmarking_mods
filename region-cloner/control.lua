@@ -6,10 +6,10 @@ require("scripts.common")
 --require('__profiler__/profiler.lua')
 --pcall(require,'__coverage__/coverage.lua')
 
-
 script.on_init(function()
     register_commands()
     storage.selection_boxes = {}
+    storage.circuit_connections = {}
 end)
 
 script.on_load(function()
@@ -26,8 +26,9 @@ script.on_configuration_changed(function()
     for _, player in pairs(game.players) do
         gui.create_gui(player)
     end
-    -- Initialize selection boxes storage if it doesn't exist
+    -- Initialize storage if it doesn't exist
     storage.selection_boxes = storage.selection_boxes or {}
+    storage.circuit_connections = storage.circuit_connections or {}
 end)
 
 script.on_event(defines.events.on_player_created, function(event)
@@ -72,11 +73,13 @@ script.on_event({defines.events.on_gui_click}, function(event)
 
     if (clicked_on == GUI_PFX .. "restrict_selection_area_to_entities") then
         validate_coordinates_and_update_view(player, true)
-        -- Update selection box after restricting area
-        local selection_box_table = mod_gui.get_frame_flow(player)[GUI_PFX .. "control-window"][GUI_PFX .. "selection_box_table"]
-        if selection_box_table and selection_box_table[GUI_PFX .. "show_selection_box"].state then
-            gui.render_selection_box(player)
-        end
+        gui.render_selection_box(player)
+        gui.render_circuit_connections(player)
+    end
+
+    -- Handle circuit network related clicks
+    if (clicked_on == GUI_PFX .. "refresh_circuit_networks") then
+        gui.render_circuit_connections(player)
     end
 
     if (clicked_on == GUI_PFX .. "issue_copy_pastes_button") then
@@ -84,15 +87,14 @@ script.on_event({defines.events.on_gui_click}, function(event)
             issue_copy_paste(player)
         end
     end
+end)
 
-    -- Handle selection box related clicks
-    if (clicked_on == GUI_PFX .. "show_selection_box") then
-        local checkbox = event.element
-        gui.toggle_selection_box(player, checkbox.state)
-    end
 
-    if (clicked_on == GUI_PFX .. "update_selection_box") then
-        gui.render_selection_box(player)
+script.on_event(defines.events.on_gui_selection_state_changed, function(event)
+    local player = game.players[event.player_index]
+    local element = event.element
+    if element and element.valid and element.name == GUI_PFX .. "direction-to-copy" then
+        gui.render_circuit_connections(player)
     end
 end)
 
@@ -102,23 +104,18 @@ script.on_event({defines.events.on_gui_checked_state_changed}, function(event)
 
     -- Handle selection box checkbox toggle
     if (clicked_on == GUI_PFX .. "show_selection_box") then
-        gui.toggle_selection_box(player, event.element.state)
+        gui.render_selection_box(player)
+    end
+
+    if (clicked_on == GUI_PFX .. "advanced_tile_paste_override_checkbox") then
+        gui.render_circuit_connections(player)
     end
 end)
 
 script.on_event({defines.events.on_gui_text_changed}, function(event)
     local player = game.players[event.player_index]
-    local element_name = event.element.name
-
-    -- Update selection box when coordinates change
-    if (element_name == "left_top_x" or element_name == "left_top_y" or
-        element_name == "right_bottom_x" or element_name == "right_bottom_y") then
-        -- Only render if checkbox is checked
-        local selection_box_table = mod_gui.get_frame_flow(player)[GUI_PFX .. "control-window"][GUI_PFX .. "selection_box_table"]
-        if selection_box_table and selection_box_table[GUI_PFX .. "show_selection_box"].state then
-            gui.render_selection_box(player)
-        end
-    end
+    gui.render_selection_box(player)
+    gui.render_circuit_connections(player)
 end)
 
 script.on_event({defines.events.on_player_selected_area}, function(event)
@@ -139,16 +136,7 @@ script.on_event({defines.events.on_player_selected_area}, function(event)
             coord_table["right_bottom_y"].text = tostring(math.ceil(event.area.right_bottom.y))
         end
 
-        -- Update selection box after area selection
-        local selection_box_table = mod_gui.get_frame_flow(player)[GUI_PFX .. "control-window"][GUI_PFX .. "selection_box_table"]
-        if selection_box_table and selection_box_table[GUI_PFX .. "show_selection_box"].state then
-            gui.render_selection_box(player)
-        end
+        gui.render_selection_box(player)
+        gui.render_circuit_connections(player)
     end
-end)
-
--- Clean up selection boxes when player leaves
-script.on_event(defines.events.on_player_left_game, function(event)
-    local player = game.players[event.player_index]
-    gui.clear_selection_box(player)
 end)

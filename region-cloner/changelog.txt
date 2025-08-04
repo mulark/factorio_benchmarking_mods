@@ -1,4 +1,8 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.2.0
+  Additions:
+    - Add rendering of current selection area and any circuit network references.
+---------------------------------------------------------------------------------------------------
 Version: 3.1.3
   Bugfixes:
     - Fix roboport area of effect with using r option to /autoclone
