@@ -1,4 +1,8 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.3.0
+  Additions:
+    - Removed workaround for cloning trains with speed, as it could lead to wrongly inserted items in filtered slots. (Vanilla cloning is still slightly off cloning position wise, but nowhere near what it was at the time workaround was implemented).
+---------------------------------------------------------------------------------------------------
 Version: 3.2.0
   Additions:
     - Add rendering of current selection area and any circuit network references.

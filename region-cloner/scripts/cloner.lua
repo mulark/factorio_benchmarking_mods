@@ -141,6 +141,8 @@ function copy_lite_entity_pool(player, lite_entity_pool, vector, surface, force)
             -- to the wrong position.
             -- See https://forums.factorio.com/viewtopic.php?f=7&t=92271
             -- and https://forums.factorio.com/viewtopic.php?f=48&t=68329
+            -- TODO: no rolling stock are lite cloned anymore as of region cloner 3.3.0
+            -- as the inventory copy is broken (Items inserted into wrong slots with filters)
             if (is_rolling_stock(event.source.type)) then
                 flip_rolling_stock(event.source, event.destination)
                 -- Clone the remaining rolling stock properties

@@ -87,13 +87,6 @@ function job_common_pool(job)
             job.high_priority_pool[k] = v
             job.entity_pool[k] = nil
         end
-        if is_rolling_stock(v.type) then
-            if v.train.speed ~= 0 then
-                -- collect up rolling stock
-                job.moving_rolling_stock_pool[k] = v
-                job.entity_pool[k] = nil
-            end
-        end
     end
 
 
