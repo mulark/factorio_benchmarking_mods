@@ -78,3 +78,5 @@ When using autoclone, it's often a good idea to use chunk alignment. This reduce
 1.2.1 - Cloning a train waiting at a station with waitcondition of time passed or inactivity resets their timer to 0. [InterfaceRequest](https://forums.factorio.com/viewtopic.php?f=28&t=77537)
 
 ~~1.2.1 - You cannot copy circuit network signals across surfaces.~~ Actually you can. But not yet resolved (1.2.2).
+
+3.4.0 - Cloning a space platform won't properly clone the quality of the hub (this only affects the HP (as of Factorio 2.1.17))

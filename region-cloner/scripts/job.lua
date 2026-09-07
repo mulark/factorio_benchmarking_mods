@@ -205,6 +205,7 @@ end
 function clone_platform_job(player)
     if not player.surface or not player.surface.platform then
         player.print("Not on a surface/platform")
+        return false
     end
 
     local job = {}
@@ -234,8 +235,13 @@ function clone_platform_job(player)
             return false
         end
     end
+
+    if not is_planet(space_location.name) then
+        -- Temporarily create it at nauvis, then move it later with copy_platform_specifics
+        space_location = "nauvis"
+    end
+    
     local cloned_platform = job.force.create_space_platform{name=platform.name, planet=space_location, starter_pack=starter_pack}
-    game.print("Created platform " .. serpent.block(cloned_platform))
     if platform.starter_pack == nil then
         -- TODO: we lose quality here... Factorio issue?
         cloned_platform.apply_starter_pack(false)

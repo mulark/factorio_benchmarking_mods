@@ -179,3 +179,8 @@ function is_circuit_network_connectable(type)
     if type == "wall" then return true end
     return false
 end
+
+function is_planet(location_id)
+    -- Returns true if location_id is registered as a planet in the active game
+    return game.planets[location_id] ~= nil
+end
