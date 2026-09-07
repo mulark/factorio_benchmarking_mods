@@ -443,6 +443,10 @@ end
 
 function run_job(job)
     if job then
+        local paste_num
+        for paste_num=1, job.times_to_paste do
+            copy_tiles(job.tiles, {x = job.tiles_to_paste_x * paste_num, y = job.tiles_to_paste_y * paste_num}, job.destination_surface)
+        end
         forces_to_clear_paste_area = {"enemy"}
         if (job.clear_normal_entities) then
             table.insert(forces_to_clear_paste_area, "player")
@@ -482,10 +486,6 @@ function run_job(job)
         -- TODO: come up with a better way to do this...
         for chunk in job.destination_surface.get_chunks() do
             job.destination_surface.set_chunk_generated_status({x=chunk.x, y=chunk.y}, defines.chunk_generated_status.entities)
-        end
-        local paste_num
-        for paste_num=1, job.times_to_paste do
-            copy_tiles(job.tiles, {x = job.tiles_to_paste_x * paste_num, y = job.tiles_to_paste_y * paste_num}, job.destination_surface)
         end
 
         -- After cloning all things, then destroy any source entities that were in the way of a paste
