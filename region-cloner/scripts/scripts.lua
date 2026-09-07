@@ -42,7 +42,7 @@ function restrict_selection_area_to_entities(box, chunk_align, player, respect_l
     end
     local temp_ent_holder = player.surface.find_entities_filtered(find_ent_params)
     for _, ent in pairs(temp_ent_holder) do
-        if not is_ignored_entity_type(ent.type) then
+        if not is_ignored_entity_type(ent.name, ent.type) then
             local unusual_collision_box_factor_left, unusual_collision_box_factor_top, unusual_collision_box_factor_right, unusual_collision_box_factor_bottom = 0, 0, 0, 0
             --ltx = left top x relative collision box coords
             local ltx, lty, rbx, rby = unpack_bounding_box(entity_bounding_box_orientation_aware(ent))
@@ -275,7 +275,7 @@ local function clear_paste_area(tpx, tpy, current_paste, bounding_box, forces_to
     for _, ent in pairs(possible_entities_to_destroy) do
         if (ent.valid) then
             --[[Make sure we check valid ents because if you destroy a rocket silo with a rocket theres a chance that the rocket itself becomes invalid.]]
-            if not is_ignored_entity_type(ent.type) then
+            if not is_ignored_entity_type(ent.name, ent.type) then
                 --[[Not sure why clear_items_inside() is needed anymore if it is? Maybe had something to do with items on a belt or performance reasons?]]
                 ent.clear_items_inside()
                 if not (ent.can_be_destroyed()) then
@@ -288,7 +288,7 @@ local function clear_paste_area(tpx, tpy, current_paste, bounding_box, forces_to
     end
     for _, ent in pairs(second_try_destroy_entities) do
         if (ent.valid) then
-            if not is_ignored_entity_type(ent.type) then
+            if not is_ignored_entity_type(ent.name, ent.type) then
                 ent.destroy()
             end
         end

@@ -112,13 +112,24 @@ function is_rolling_stock(type)
 end
 
 --[[Ghosts will break script as it exists currently. Copying the player is annoying and only serves to clutter the map. Adding character for 0.17.35+ support]]
---player no longer does anything, keeping it doesn't hurt anything though.
+-- player no longer does anything, keeping it doesn't hurt anything though.
 --ENTITIES_TO_NOT_CLONE = {"player", "character", "entity-ghost", "tile-ghost"}
-function is_ignored_entity_type(type)
+function is_ignored_entity_type(name, type)
     if type == "player" then return true end
     if type == "character" then return true end
     if type == "entity-ghost" then return true end
     if type == "tile-ghost" then return true end
+    if is_combination_modded_entity(name) then return true end
+    return false
+end
+
+-- Editor Extensions creates combination entities. For example the loader is actually a ee-infinity-loader and ee-infinity-loader-chest stapled together
+-- On clone of ee-infinity-loader, it creates another ee-infinity-loader-chest at this poition regardless
+-- Also does it for fluid wagons (rg create_entity in editor extensions to find potential usages)
+-- Thus, ignore everything given by the pattern ee-infinity-*-*
+-- This is checked to work vs Editor Extensions 2.6.2.
+function is_combination_modded_entity(name)
+    if string.match(name, "^ee%-infinity%-[%w]+%-[%w]+$") then return true end
     return false
 end
 

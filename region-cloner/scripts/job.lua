@@ -29,7 +29,7 @@ local function clean_entity_pool_and_selectively_correct_tile_paste_length_for_r
         if has_value(ent.type, {"straight-rail", "curved-rail"}) then
             flag_rail_found = true
         end
-        if is_ignored_entity_type(ent.type) then
+        if is_ignored_entity_type(ent.name, ent.type) then
             entity_pool[key] = nil
         end
     end

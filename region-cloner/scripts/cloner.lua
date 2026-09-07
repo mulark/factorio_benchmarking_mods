@@ -136,39 +136,6 @@ function copy_lite_entity_pool(player, lite_entity_pool, vector, surface, force)
             if is_circuit_network_connectable(event.source.type) then
                 copy_circuit_network_reference_connections(event.source, event.destination)
             end
-            --TODO don't flip rolling stock anymore?
-            -- Workaround to handle rolling stock with speed being cloned
-            -- to the wrong position.
-            -- See https://forums.factorio.com/viewtopic.php?f=7&t=92271
-            -- and https://forums.factorio.com/viewtopic.php?f=48&t=68329
-            -- TODO: no rolling stock are lite cloned anymore as of region cloner 3.3.0
-            -- as the inventory copy is broken (Items inserted into wrong slots with filters)
-            if (is_rolling_stock(event.source.type)) then
-                flip_rolling_stock(event.source, event.destination)
-                -- Clone the remaining rolling stock properties
-                -- Handles arty ammo and loco fuel too, crappy API
-                if (event.destination.get_inventory(defines.inventory.cargo_wagon)) then
-                    for _,item in pairs(event.source.get_inventory(defines.inventory.cargo_wagon).get_contents()) do
-                        event.destination.get_inventory(defines.inventory.cargo_wagon).insert({name = item.name, count = item.count, quality = item.quality})
-                    end
-                end
-                -- Copy inv before copying bar (possibly)
-                event.destination.copy_settings(event.source)
-                event.destination.train.manual_mode = event.source.train.manual_mode
-                event.destination.train.schedule = event.source.train.schedule
-                if (event.destination.burner) then
-                    event.destination.burner.currently_burning = event.source.burner.currently_burning
-                    event.destination.burner.remaining_burning_fuel = event.source.burner.remaining_burning_fuel
-                end
-                event.destination.train.speed = event.source.train.speed
-
-                if event.destination.fluidbox then
-                    for i=1, #event.destination.fluidbox do
-                        event.destination.fluidbox[i] = event.source.fluidbox[i]
-                    end
-                end
-
-            end
         end
     end
     if (debug_logging) then
