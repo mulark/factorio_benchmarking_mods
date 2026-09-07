@@ -110,7 +110,7 @@ function job_create_lite(times_to_paste, dir_to_copy_index, chunk_align, player,
     end
     job_common_pool(job)
     job.times_to_paste = times_to_paste
-    job.tiles_to_paste_x, job.tiles_to_paste_y = 0
+    job.tiles_to_paste_x, job.tiles_to_paste_y = 0, 0
     job.tiles_to_paste_x, job.tiles_to_paste_y = convert_box_to_offsets(dir_to_copy_index, job.bounding_box)
     job.tiles_to_paste_x, job.tiles_to_paste_y = clean_entity_pool_and_selectively_correct_tile_paste_length_for_rail_grid(job.entity_pool, job.tiles_to_paste_x, job.tiles_to_paste_y, false, job.player)
     job.clear_normal_entities = true
@@ -234,9 +234,10 @@ function clone_platform_job(player)
             return false
         end
     end
-    local cloned_platform = job.force.create_space_platform{planet=space_location, starter_pack=starter_pack}
+    local cloned_platform = job.force.create_space_platform{name=platform.name, planet=space_location, starter_pack=starter_pack}
     game.print("Created platform " .. serpent.block(cloned_platform))
     if platform.starter_pack == nil then
+        -- TODO: we lose quality here... Factorio issue?
         cloned_platform.apply_starter_pack(false)
     else
         return false

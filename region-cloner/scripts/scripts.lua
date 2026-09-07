@@ -386,6 +386,9 @@ function region_cloner_main_for(step)
 		-- rest
 		copy_entity_pool(region_cloner_job.player, region_cloner_job.entity_pool, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.source_surface, region_cloner_job.destination_surface, region_cloner_job.force)
 	end
+    if region_cloner_job.source_surface.name ~= region_cloner_job.destination_surface.name and region_cloner_job.source_surface.platform ~= nil then
+        copy_platform_specifics(region_cloner_job.source_surface.platform, region_cloner_job.destination_surface.platform)
+    end
 end
 
 local function region_cloner_for(EventData)

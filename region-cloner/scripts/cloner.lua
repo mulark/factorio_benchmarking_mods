@@ -145,3 +145,28 @@ function copy_lite_entity_pool(player, lite_entity_pool, vector, source_surface,
         log("finished copy_lite_entity_pool()")
     end
 end
+
+function copy_platform_specifics(source_platform, destination_platform)
+    local src_hub = source_platform.hub
+    local dest_hub = destination_platform.hub
+    dest_hub.copy_settings(src_hub)
+
+    local src_sections = src_hub.get_logistic_sections()
+    for i, section in ipairs(dest_hub.get_logistic_sections().sections) do
+        section.active = src_sections.get_section(i).active
+    end
+
+    if source_platform.space_connection ~= nil then
+        destination_platform.space_connection = source_platform.space_connection
+        destination_platform.distance = source_platform.distance
+    end
+
+    destination_platform.completed_trips = source_platform.completed_trips
+    destination_platform.paused = source_platform.paused
+    destination_platform.speed = source_platform.speed
+
+    local dest_schedule = destination_platform.get_schedule()
+    local src_schedule = source_platform.get_schedule()
+    dest_schedule.go_to_station(src_schedule.current)
+    dest_schedule.set_stopped(source_platform.paused)
+end
