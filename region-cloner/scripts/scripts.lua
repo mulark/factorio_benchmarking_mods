@@ -365,6 +365,9 @@ region_cloner_power_poles = 0x08
 region_cloner_rest = 0x10
 function region_cloner_main_for(step)
 	if hasbit(step, region_cloner_clear_paste_area) then
+        if debug_logging then
+            log("Clear paste, validate")
+        end
 		-- clear paste area
 		clear_paste_area(region_cloner_job.tiles_to_paste_x, region_cloner_job.tiles_to_paste_y, region_cloner_x, region_cloner_job.bounding_box, forces_to_clear_paste_aream, region_cloner_job.source_surface, region_cloner_job.destination_surface, region_cloner_job.entity_pool)
 		validate_entity_pool(region_cloner_job.high_priority_pool)
@@ -372,6 +375,9 @@ function region_cloner_main_for(step)
 		validate_entity_pool(region_cloner_job.lite_entity_pool)
 	end
 	if hasbit(step, region_cloner_high_prio) then
+        if debug_logging then
+            log("Copy high prio")
+        end
 		-- High prio
 		copy_entity_pool(region_cloner_job.player, region_cloner_job.high_priority_pool, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.source_surface, region_cloner_job.destination_surface, region_cloner_job.force)
 	end
@@ -379,14 +385,23 @@ function region_cloner_main_for(step)
 		-- obsolete
 	end
 	if hasbit(step, region_cloner_power_poles) then
+        if debug_logging then
+            log("Copy power poles")
+        end
 		-- power poles
 		copy_lite_entity_pool(region_cloner_job.player, region_cloner_job.lite_entity_pool, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.source_surface, region_cloner_job.destination_surface, region_cloner_job.force)
 	end
 	if hasbit(step, region_cloner_rest) then
+        if debug_logging then
+            log("Copy entities")
+        end
 		-- rest
 		copy_entity_pool(region_cloner_job.player, region_cloner_job.entity_pool, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.source_surface, region_cloner_job.destination_surface, region_cloner_job.force)
 	end
     if region_cloner_job.source_surface.name ~= region_cloner_job.destination_surface.name and region_cloner_job.source_surface.platform ~= nil then
+        if debug_logging then
+            log("Copy platform specifics")
+        end
         copy_platform_specifics(region_cloner_job.source_surface.platform, region_cloner_job.destination_surface.platform)
     end
 end
