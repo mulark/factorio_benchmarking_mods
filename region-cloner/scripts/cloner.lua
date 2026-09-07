@@ -119,7 +119,7 @@ function copy_entity_pool(player, entity_pool, vector, source_surface, destinati
     if (debug_logging) then
         log("entered copy_entity_pool()")
     end
-    source_surface.clone_entities({entities=entity_pool, destination_offset=vector, destination_surface=destination_surface, destination_force=force, create_build_effect_smoke=false})
+    source_surface.clone_entities({entities=entity_pool, destination_offset=vector, destination_surface=destination_surface, create_build_effect_smoke=false})
     correct_cloned_inserter_targets(entity_pool, vector, source_surface, destination_surface, force)
     if (debug_logging) then
         log("finished copy_entity_pool()")
