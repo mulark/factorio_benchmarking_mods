@@ -153,7 +153,9 @@ function copy_platform_specifics(source_platform, destination_platform)
 
     local src_sections = src_hub.get_logistic_sections()
     for i, section in ipairs(dest_hub.get_logistic_sections().sections) do
-        section.active = src_sections.get_section(i).active
+        if section.is_manual then
+            section.active = src_sections.get_section(i).active
+        end
     end
 
     if source_platform.space_connection ~= nil then
