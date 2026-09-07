@@ -151,6 +151,12 @@ function copy_platform_specifics(source_platform, destination_platform)
     local dest_hub = destination_platform.hub
     dest_hub.copy_settings(src_hub)
 
+    for _, inv_define in ipairs({defines.inventory.hub_main, defines.inventory.hub_trash}) do
+        for _, item in pairs(src_hub.get_inventory(inv_define).get_contents()) do
+            dest_hub.get_inventory(inv_define).insert(item)
+        end
+    end
+
     local src_sections = src_hub.get_logistic_sections()
     for i, section in ipairs(dest_hub.get_logistic_sections().sections) do
         if section.is_manual then
