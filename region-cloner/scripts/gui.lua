@@ -16,6 +16,7 @@ gui.create_gui = function (player)
     sub_title.style.horizontally_stretchable = true
     sub_title.style.horizontal_align = "right"
     local advanced_view_button = sub_title.add{name=GUI_PFX .. "advanced_view_button", type="button", tooltip="Open advanced settings", caption="Advanced"}
+    sub_title.add{name=GUI_PFX .. "platform_clone_button", type="button", caption="Clone platform", tooltip="Clone the current space platform if there is one"}
 
     local advanced_settings_gui = frame_flow.add{name=GUI_PFX .. "advanced_view_pane", type="frame", direction = "vertical"}
     local advanced_title_flow = advanced_settings_gui.add{type="flow"}
@@ -43,15 +44,6 @@ gui.create_gui = function (player)
 	--[Adding the "progress bar" checkbox]
 	advanced_settings_gui.add{type="checkbox", caption="Print Progress", state=false, name=GUI_PFX .. "progress_bar", tooltip="The progress bar spends an additional 1 tick for each copy, which increases chance of clones breaking."}
 	advanced_settings_gui.add{type="checkbox", caption="Print Detailed Progress", state=false, name=GUI_PFX .. "detailed_log", tooltip="The detailed log copies different types of entities in different ticks, which increases the chance of clones breaking."}
-
-
-    local platform_names = {}
-    for _, item in ipairs(player.force.platforms) do
-        table.insert(platform_names, item.name)
-    end
-    local platform_clone_drop_down_table = advanced_settings_gui.add{type="table", column_count=4, name=GUI_PFX .. "platform_clone_drop_down_table"}
-        platform_clone_drop_down_table.add{type="label", caption = "Clone platform", tooltip="Clone space platforms"}
-        platform_clone_drop_down_table.add{name=GUI_PFX .. "platform_clone_button", type="button", caption="Clone the current space platform if there is one"}
 
 
     mod_frame.visible = false
