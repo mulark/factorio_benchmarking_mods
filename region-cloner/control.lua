@@ -87,6 +87,13 @@ script.on_event({defines.events.on_gui_click}, function(event)
             issue_copy_paste(player)
         end
     end
+
+    if (clicked_on == GUI_PFX .. "platform_clone_button") then
+        local job = clone_platform_job(player)
+        if job then
+            run_job(job)
+        end
+    end
 end)
 
 

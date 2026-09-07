@@ -237,7 +237,10 @@ end
 
 -- Entities which we have to destroy after all clones are completed
 source_entities_to_destroy = {}
-local function clear_paste_area(tpx, tpy, current_paste, bounding_box, forces_to_clear, surface, entity_pool)
+local function clear_paste_area(tpx, tpy, current_paste, bounding_box, forces_to_clear, source_surface, destination_surface, entity_pool)
+    if (bounding_box == nil) then
+        return
+    end
     if (debug_logging) then
         log("entered clear_paste_area()")
     end
@@ -247,7 +250,7 @@ local function clear_paste_area(tpx, tpy, current_paste, bounding_box, forces_to
         return
     end
     local second_try_destroy_entities = {}
-    local possible_entities_to_destroy = surface.find_entities_filtered{area=new_box, force=forces_to_clear}
+    local possible_entities_to_destroy = destination_surface.find_entities_filtered{area=new_box, force=forces_to_clear}
     if current_paste == 1 then
         if (debug_logging) then
             log("first paste checks... ow?")
@@ -363,27 +366,25 @@ region_cloner_rest = 0x10
 function region_cloner_main_for(step)
 	if hasbit(step, region_cloner_clear_paste_area) then
 		-- clear paste area
-		clear_paste_area(region_cloner_job.tiles_to_paste_x, region_cloner_job.tiles_to_paste_y, region_cloner_x, region_cloner_job.bounding_box, forces_to_clear_paste_area, region_cloner_job.surface, region_cloner_job.entity_pool)
+		clear_paste_area(region_cloner_job.tiles_to_paste_x, region_cloner_job.tiles_to_paste_y, region_cloner_x, region_cloner_job.bounding_box, forces_to_clear_paste_aream, region_cloner_job.source_surface, region_cloner_job.destination_surface, region_cloner_job.entity_pool)
 		validate_entity_pool(region_cloner_job.high_priority_pool)
-		validate_entity_pool(region_cloner_job.moving_rolling_stock_pool)
 		validate_entity_pool(region_cloner_job.entity_pool)
 		validate_entity_pool(region_cloner_job.lite_entity_pool)
 	end
 	if hasbit(step, region_cloner_high_prio) then
 		-- High prio
-		copy_entity_pool(region_cloner_job.player, region_cloner_job.high_priority_pool, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.surface, region_cloner_job.force)
+		copy_entity_pool(region_cloner_job.player, region_cloner_job.high_priority_pool, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.source_surface, region_cloner_job.destination_surface, region_cloner_job.force)
 	end
 	if hasbit(step, region_cloner_rolling_stock) then
-		-- rolling stock
-		copy_lite_entity_pool(region_cloner_job.player, region_cloner_job.moving_rolling_stock_pool, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.surface, region_cloner_job.force)
+		-- obsolete
 	end
 	if hasbit(step, region_cloner_power_poles) then
 		-- power poles
-		copy_lite_entity_pool(region_cloner_job.player, region_cloner_job.lite_entity_pool, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.surface, region_cloner_job.force)
+		copy_lite_entity_pool(region_cloner_job.player, region_cloner_job.lite_entity_pool, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.source_surface, region_cloner_job.destination_surface, region_cloner_job.force)
 	end
 	if hasbit(step, region_cloner_rest) then
 		-- rest
-		copy_entity_pool(region_cloner_job.player, region_cloner_job.entity_pool, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.surface, region_cloner_job.force)
+		copy_entity_pool(region_cloner_job.player, region_cloner_job.entity_pool, {x = region_cloner_job.tiles_to_paste_x * region_cloner_x, y = region_cloner_job.tiles_to_paste_y * region_cloner_x}, region_cloner_job.source_surface, region_cloner_job.destination_surface, region_cloner_job.force)
 	end
 end
 
@@ -473,15 +474,15 @@ function run_job(job)
 
         local paste_num
         for paste_num=1, job.times_to_paste do
-            smart_chart(job.player, job.tiles_to_paste_x, job.tiles_to_paste_y, paste_num, job.bounding_box)
+            smart_chart(job.player, job.tiles_to_paste_x, job.tiles_to_paste_y, paste_num, job.bounding_box, job.destination_surface)
         end
         -- TODO: come up with a better way to do this...
-        for chunk in job.surface.get_chunks() do
-            job.surface.set_chunk_generated_status({x=chunk.x, y=chunk.y}, defines.chunk_generated_status.entities)
+        for chunk in job.destination_surface.get_chunks() do
+            job.destination_surface.set_chunk_generated_status({x=chunk.x, y=chunk.y}, defines.chunk_generated_status.entities)
         end
         local paste_num
         for paste_num=1, job.times_to_paste do
-            copy_tiles(job.tiles, {x = job.tiles_to_paste_x * paste_num, y = job.tiles_to_paste_y * paste_num}, job.surface)
+            copy_tiles(job.tiles, {x = job.tiles_to_paste_x * paste_num, y = job.tiles_to_paste_y * paste_num}, job.destination_surface)
         end
 
         -- After cloning all things, then destroy any source entities that were in the way of a paste

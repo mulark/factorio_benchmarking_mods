@@ -1,6 +1,6 @@
 require("scripts.common")
 
-function correct_cloned_inserter_targets(entity_pool, vector, surface, force)
+function correct_cloned_inserter_targets(entity_pool, vector, source_surface, destination_surface, force)
     if (debug_logging) then
         log("entered correct_cloned_inserter_targets()")
     end
@@ -8,20 +8,20 @@ function correct_cloned_inserter_targets(entity_pool, vector, surface, force)
     for _, inserter in pairs(entity_pool) do
         local cloned_inserter
         if (inserter.type == "inserter") then
-            cloned_inserter = surface.find_entity(inserter.name, {inserter.position.x + vector.x, inserter.position.y + vector.y})
+            cloned_inserter = destination_surface.find_entity(inserter.name, {inserter.position.x + vector.x, inserter.position.y + vector.y})
         end
         if (cloned_inserter) then
             if (inserter.drop_target) then
                 if (cloned_inserter.drop_target) then
                     if (inserter.drop_target.name ~= cloned_inserter.drop_target.name) then
                         --[[We have cloned an inserter but are not linked to the proper target]]
-                        local intended_drop_target = surface.find_entity(inserter.drop_target.name, {inserter.drop_target.position.x + vector.x, inserter.drop_target.position.y + vector.y})
+                        local intended_drop_target = destination_surface.find_entity(inserter.drop_target.name, {inserter.drop_target.position.x + vector.x, inserter.drop_target.position.y + vector.y})
                         if (intended_drop_target) then
                             cloned_inserter.drop_target = intended_drop_target
                         end
                     end
                 else
-                    local intended_drop_target = surface.find_entity(inserter.drop_target.name, {inserter.drop_target.position.x + vector.x, inserter.drop_target.position.y + vector.y})
+                    local intended_drop_target = destination_surface.find_entity(inserter.drop_target.name, {inserter.drop_target.position.x + vector.x, inserter.drop_target.position.y + vector.y})
                     if (intended_drop_target) then
                         cloned_inserter.drop_target = intended_drop_target
                     end
@@ -31,13 +31,13 @@ function correct_cloned_inserter_targets(entity_pool, vector, surface, force)
                 if (cloned_inserter.pickup_target) then
                     if (inserter.pickup_target.name ~= cloned_inserter.pickup_target.name) then
                         --[[We have cloned an inserter but are not linked to the proper target]]
-                        local intended_pickup_target = surface.find_entity(inserter.pickup_target.name, {inserter.pickup_target.position.x + vector.x, inserter.pickup_target.position.y + vector.y})
+                        local intended_pickup_target = destination_surface.find_entity(inserter.pickup_target.name, {inserter.pickup_target.position.x + vector.x, inserter.pickup_target.position.y + vector.y})
                         if (intended_pickup_target) then
                             cloned_inserter.pickup_target = intended_pickup_target
                         end
                     end
                 else
-                    local intended_pickup_target = surface.find_entity(inserter.pickup_target.name, {inserter.pickup_target.position.x + vector.x, inserter.pickup_target.position.y + vector.y})
+                    local intended_pickup_target = destination_surface.find_entity(inserter.pickup_target.name, {inserter.pickup_target.position.x + vector.x, inserter.pickup_target.position.y + vector.y})
                     if (intended_pickup_target) then
                         cloned_inserter.pickup_target = intended_pickup_target
                     end
@@ -50,9 +50,12 @@ function correct_cloned_inserter_targets(entity_pool, vector, surface, force)
     end
 end
 
-function smart_chart(player, tpx, tpy, current_paste, bounding_box)
+function smart_chart(player, tpx, tpy, current_paste, bounding_box, destination_surface)
+    if bounding_box == nil then
+        return
+    end
     local new_box = convert_bounding_box_to_current_paste_region(tpx, tpy, current_paste, bounding_box)
-    player.force.chart(player.surface, new_box)
+    player.force.chart(destination_surface, new_box)
 end
 
 function convert_bounding_box_to_current_paste_region(tpx, tpy, current_paste, bounding_box)
@@ -69,7 +72,7 @@ function convert_bounding_box_to_current_paste_region(tpx, tpy, current_paste, b
     return modified_box
 end
 
-function copy_tiles(tiles, vector, surface)
+function copy_tiles(tiles, vector, destination_surface)
     local transformed_tiles = {}
     local hidden_tiles = {}
     local double_hidden_tiles = {}
@@ -103,34 +106,34 @@ function copy_tiles(tiles, vector, surface)
             end
         end
     end
-    surface.set_tiles(transformed_tiles, true, false)
+    destination_surface.set_tiles(transformed_tiles, true, false)
     for _,hidden in pairs(hidden_tiles) do
-        surface.set_hidden_tile(hidden.position, hidden.name)
+        destination_surface.set_hidden_tile(hidden.position, hidden.name)
     end
     for _,double_hidden in pairs(double_hidden_tiles) do
-        surface.set_double_hidden_tile(double_hidden.position, double_hidden.name)
+        destination_surface.set_double_hidden_tile(double_hidden.position, double_hidden.name)
     end
 end
 
-function copy_entity_pool(player, entity_pool, vector, surface, force)
+function copy_entity_pool(player, entity_pool, vector, source_surface, destination_surface, force)
     if (debug_logging) then
         log("entered copy_entity_pool()")
     end
-    surface.clone_entities({entities=entity_pool, destination_offset=vector, destination_surface=surface, destination_force=force, create_build_effect_smoke=false})
-    correct_cloned_inserter_targets(entity_pool, vector, surface, force)
+    source_surface.clone_entities({entities=entity_pool, destination_offset=vector, destination_surface=destination_surface, destination_force=force, create_build_effect_smoke=false})
+    correct_cloned_inserter_targets(entity_pool, vector, source_surface, destination_surface, force)
     if (debug_logging) then
         log("finished copy_entity_pool()")
     end
 end
 
-function copy_lite_entity_pool(player, lite_entity_pool, vector, surface, force)
+function copy_lite_entity_pool(player, lite_entity_pool, vector, source_surface, destination_surface, force)
     if (debug_logging) then
         log("entered copy_lite_entity_pool()")
     end
     -- Pointless code duplication required by 0.18.27, since on_entity_cloned
     -- is no longer available
     for _,original in pairs(lite_entity_pool) do
-        local cloned = surface.create_entity({name=original.name, position = {original.position.x + vector.x, original.position.y + vector.y}, force = force, create_build_effect_smoke = false, direction = original.direction, quality = original.quality})
+        local cloned = destination_surface.create_entity({name=original.name, position = {original.position.x + vector.x, original.position.y + vector.y}, force = force, create_build_effect_smoke = false, direction = original.direction, quality = original.quality})
         if cloned and original.valid then
             local event = {source=original, destination=cloned}
             if is_circuit_network_connectable(event.source.type) then

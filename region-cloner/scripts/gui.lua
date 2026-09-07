@@ -44,6 +44,16 @@ gui.create_gui = function (player)
 	advanced_settings_gui.add{type="checkbox", caption="Print Progress", state=false, name=GUI_PFX .. "progress_bar", tooltip="The progress bar spends an additional 1 tick for each copy, which increases chance of clones breaking."}
 	advanced_settings_gui.add{type="checkbox", caption="Print Detailed Progress", state=false, name=GUI_PFX .. "detailed_log", tooltip="The detailed log copies different types of entities in different ticks, which increases the chance of clones breaking."}
 
+
+    local platform_names = {}
+    for _, item in ipairs(player.force.platforms) do
+        table.insert(platform_names, item.name)
+    end
+    local platform_clone_drop_down_table = advanced_settings_gui.add{type="table", column_count=4, name=GUI_PFX .. "platform_clone_drop_down_table"}
+        platform_clone_drop_down_table.add{type="label", caption = "Clone platform", tooltip="Clone space platforms"}
+        platform_clone_drop_down_table.add{name=GUI_PFX .. "platform_clone_button", type="button", caption="Clone the current space platform if there is one"}
+
+
     mod_frame.visible = false
     local coord_gui_table = mod_frame.add{type="table", column_count=3, name=GUI_PFX .. "coordinate-table"}
         coord_gui_table.add{type="label", name="left_top_description", caption="Left_top", tooltip="The top left corner coordinate of the region you wish to copy"}
