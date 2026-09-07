@@ -34,7 +34,7 @@ function restrict_selection_area_to_entities(box, chunk_align, player, respect_l
     --local problematic_collision_box_entity_types = {"curved-rail"}
     local new_left, new_right, new_top, new_bottom = 0
     local find_ent_params = {force="player"}
-    if box.left_top.x == 0 and box.left_top.y == 0 and box.right_bottom.x == 0 and box.right_bottom.y == 0 then
+    if (box.left_top.x == 0 or box.left_top.x == nil) and (box.left_top.y == 0 or box.left_top.y == nil) and (box.right_bottom.x == 0 or box.right_bottom.x == nil) and (box.right_bottom.y == 0 or box.right_bottom.y == nil) then
         -- Cannot be true unless you're using a lite job or the restrict selection area button with all 0's
         -- Search an unrestricted area if this is the case.
     else
