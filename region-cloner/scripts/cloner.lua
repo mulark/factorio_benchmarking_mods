@@ -177,4 +177,6 @@ function copy_platform_specifics(source_platform, destination_platform)
     local src_schedule = source_platform.get_schedule()
     dest_schedule.go_to_station(src_schedule.current)
     dest_schedule.set_stopped(source_platform.paused)
+
+    copy_circuit_network_reference_connections(src_hub, dest_hub)
 end
