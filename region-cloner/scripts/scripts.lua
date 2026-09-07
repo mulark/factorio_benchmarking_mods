@@ -130,8 +130,8 @@ function restrict_selection_area_to_entities(box, chunk_align, player, respect_l
         end
     end
     if not (new_left and new_top and new_right and new_bottom) then
-        player.print("No player entites were found in the selection area, could not determine a new selection area!")
-        return construct_bounding_box(left, top, right, bottom)
+        player.print("No player entites were found in the selection area, selection has been cleared!")
+        return construct_bounding_box(0, 0, 0, 0)
     end
     return construct_bounding_box(new_left, new_top, new_right, new_bottom)
 end
