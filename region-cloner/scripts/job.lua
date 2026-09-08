@@ -257,7 +257,7 @@ function clone_platform_job(player)
 
     job_common_pool(job)
 
-    job.times_to_paste = tonumber(mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_drop_down_table"]["number_of_copies"].text)
+    job.times_to_paste = 1
 
     job.tiles_to_paste_x, job.tiles_to_paste_y = 0, 0
 

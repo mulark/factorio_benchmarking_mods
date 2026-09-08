@@ -1,4 +1,8 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.4.1
+  Bugfixes:
+    - Cloning space platforms now applies times to paste correctly
+---------------------------------------------------------------------------------------------------
 Version: 3.4.0
   Bugfixes:
     - Added ability to clone space platforms

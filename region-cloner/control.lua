@@ -89,9 +89,13 @@ script.on_event({defines.events.on_gui_click}, function(event)
     end
 
     if (clicked_on == GUI_PFX .. "platform_clone_button") then
-        local job = clone_platform_job(player)
-        if job then
-            run_job(job)
+        local times_to_clone_platform = tonumber(mod_gui.get_frame_flow(player)["region-cloner_control-window"]["region-cloner_drop_down_table"]["number_of_copies"].text)
+        local paste_num
+        for paste_num=1, times_to_clone_platform do
+            local job = clone_platform_job(player)
+            if job then
+                run_job(job)
+            end
         end
     end
 end)
